@@ -1,4 +1,3 @@
-
 import React from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
@@ -27,24 +26,64 @@ import {
   MoreHorizontal
 } from 'lucide-react';
 
+// Type definitions for the mock data
+interface PreventivoItem {
+  id: string;
+  cliente: string;
+  descrizione: string;
+  valore: string;
+  data: string;
+  scadenza: string;
+}
+
+interface ApprovatoItem {
+  id: string;
+  cliente: string;
+  descrizione: string;
+  valore: string;
+  data: string;
+  inizio: string;
+}
+
+interface InCorsoItem {
+  id: string;
+  cliente: string;
+  descrizione: string;
+  valore: string;
+  inizio: string;
+  fine: string;
+  stato: string;
+}
+
+interface CompletatoItem {
+  id: string;
+  cliente: string;
+  descrizione: string;
+  valore: string;
+  completato: string;
+  fatturato: string;
+}
+
+type ProgettoItem = PreventivoItem | ApprovatoItem | InCorsoItem | CompletatoItem;
+
 // Mock data
-const preventivi = [
+const preventivi: PreventivoItem[] = [
   { id: '1', cliente: 'Marco Rossi', descrizione: 'Sostituzione finestre appartamento', valore: '4.800 €', data: '10/04/2025', scadenza: '25/04/2025' },
   { id: '2', cliente: 'Laura Bianchi', descrizione: 'Installazione porte interne', valore: '2.300 €', data: '08/04/2025', scadenza: '23/04/2025' },
   { id: '3', cliente: 'Antonio Russo', descrizione: 'Persiane in alluminio', valore: '1.950 €', data: '05/04/2025', scadenza: '20/04/2025' },
 ];
 
-const approvati = [
+const approvati: ApprovatoItem[] = [
   { id: '4', cliente: 'Francesca Neri', descrizione: 'Porte blindate e serramenti', valore: '6.200 €', data: '28/03/2025', inizio: '18/04/2025' },
   { id: '5', cliente: 'Giuseppe Verdi', descrizione: 'Sostituzione infissi', valore: '3.800 €', data: '22/03/2025', inizio: '15/04/2025' },
 ];
 
-const inCorso = [
+const inCorso: InCorsoItem[] = [
   { id: '6', cliente: 'Costruzioni Veloci SRL', descrizione: 'Fornitura e posa serramenti edificio', valore: '18.500 €', inizio: '01/04/2025', fine: '30/04/2025', stato: '60%' },
   { id: '7', cliente: 'Progetti Edilizi SpA', descrizione: 'Porte tagliafuoco cantiere via Milano', valore: '9.300 €', inizio: '25/03/2025', fine: '20/04/2025', stato: '80%' },
 ];
 
-const completati = [
+const completati: CompletatoItem[] = [
   { id: '8', cliente: 'Maria Ferrari', descrizione: 'Sostituzione portoncino ingresso', valore: '1.800 €', completato: '01/04/2025', fatturato: 'Sì' },
   { id: '9', cliente: 'Roberto Esposito', descrizione: 'Finestre PVC doppio vetro', valore: '3.450 €', completato: '28/03/2025', fatturato: 'Sì' },
   { id: '10', cliente: 'Sofia Colombo', descrizione: 'Porte interne in legno', valore: '2.100 €', completato: '25/03/2025', fatturato: 'No' },
@@ -268,7 +307,17 @@ const Progetti = () => {
                         <td className="p-4">{item.descrizione}</td>
                         <td className="p-4">{item.cliente}</td>
                         <td className="p-4">{item.valore}</td>
-                        <td className="p-4">{item.data || item.inizio || item.completato}</td>
+                        <td className="p-4">
+                          {'data' in item 
+                            ? item.data 
+                            : 'inizio' in item && !('stato' in item) 
+                              ? item.inizio 
+                              : 'stato' in item 
+                                ? item.inizio 
+                                : 'completato' in item 
+                                  ? item.completato 
+                                  : ''}
+                        </td>
                         <td className="p-4">
                           {'scadenza' in item ? (
                             <Badge variant="outline" className="bg-blue-100 text-blue-800">Preventivo</Badge>

@@ -21,34 +21,34 @@ const stats = [
     title: 'Preventivi Aperti', 
     value: '12', 
     icon: <FileText size={20} />,
-    change: { value: 8, type: 'increase' } 
+    change: { value: 8, type: 'increase' as const } 
   },
   { 
     title: 'Appuntamenti Oggi', 
     value: '5', 
     icon: <CalendarCheck size={20} />,
-    change: { value: 2, type: 'increase' } 
+    change: { value: 2, type: 'increase' as const } 
   },
   { 
     title: 'Fatturato Mensile', 
     value: '€ 24.500', 
     icon: <Euro size={20} />,
-    change: { value: 12, type: 'increase' } 
+    change: { value: 12, type: 'increase' as const } 
   },
   { 
     title: 'Nuovi Clienti', 
     value: '8', 
     icon: <Users size={20} />,
-    change: { value: 5, type: 'decrease' } 
+    change: { value: 5, type: 'decrease' as const } 
   },
 ];
 
 const projects = [
-  { id: '1', client: 'Marco Rossi', description: 'Sostituzione finestre appartamento', status: 'preventivo', deadline: '25/04/2025' },
-  { id: '2', client: 'Francesca Neri', description: 'Porte blindate e serramenti', status: 'approvato', deadline: '18/04/2025' },
-  { id: '3', client: 'Costruzioni Veloci SRL', description: 'Fornitura e posa serramenti edificio', status: 'in-corso', deadline: '30/04/2025' },
-  { id: '4', client: 'Maria Ferrari', description: 'Sostituzione portoncino ingresso', status: 'completato', deadline: '01/04/2025' },
-  { id: '5', client: 'Laura Bianchi', description: 'Installazione porte interne', status: 'preventivo', deadline: '23/04/2025' },
+  { id: '1', client: 'Marco Rossi', description: 'Sostituzione finestre appartamento', status: 'preventivo' as const, deadline: '25/04/2025' },
+  { id: '2', client: 'Francesca Neri', description: 'Porte blindate e serramenti', status: 'approvato' as const, deadline: '18/04/2025' },
+  { id: '3', client: 'Costruzioni Veloci SRL', description: 'Fornitura e posa serramenti edificio', status: 'in-corso' as const, deadline: '30/04/2025' },
+  { id: '4', client: 'Maria Ferrari', description: 'Sostituzione portoncino ingresso', status: 'completato' as const, deadline: '01/04/2025' },
+  { id: '5', client: 'Laura Bianchi', description: 'Installazione porte interne', status: 'preventivo' as const, deadline: '23/04/2025' },
 ];
 
 const appointments = [
@@ -58,7 +58,7 @@ const appointments = [
     client: 'Marco Rossi',
     datetime: '2025-04-15T10:00:00',
     location: 'Via Roma 123, Milano',
-    type: 'sopralluogo'
+    type: 'sopralluogo' as const
   },
   { 
     id: '2', 
@@ -66,7 +66,7 @@ const appointments = [
     client: 'Laura Bianchi',
     datetime: '2025-04-15T14:00:00',
     location: 'Via Verdi 45, Roma',
-    type: 'installazione'
+    type: 'installazione' as const
   },
   { 
     id: '3', 
@@ -74,7 +74,7 @@ const appointments = [
     client: 'Costruzioni Veloci SRL',
     datetime: '2025-04-16T09:30:00',
     location: 'Sede aziendale',
-    type: 'riunione'
+    type: 'riunione' as const
   },
 ];
 
