@@ -1,3 +1,4 @@
+
 import React from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
@@ -64,6 +65,7 @@ interface CompletatoItem {
   fatturato: string;
 }
 
+// Definizione del tipo unione più esplicito
 type ProgettoItem = PreventivoItem | ApprovatoItem | InCorsoItem | CompletatoItem;
 
 // Mock data
@@ -107,6 +109,9 @@ const PipeCard = ({ title, count, children }: { title: string, count: number, ch
 );
 
 const Progetti = () => {
+  // Creiamo un array combinato con tutti i progetti esplicitamente tipizzato
+  const allProjects: ProgettoItem[] = [...preventivi, ...approvati, ...inCorso, ...completati];
+  
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -302,7 +307,7 @@ const Progetti = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {[...preventivi, ...approvati, ...inCorso, ...completati].map((item) => (
+                    {allProjects.map((item) => (
                       <tr key={item.id} className="border-b hover:bg-gray-50">
                         <td className="p-4">{item.descrizione}</td>
                         <td className="p-4">{item.cliente}</td>
