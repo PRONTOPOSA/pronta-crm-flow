@@ -1,4 +1,3 @@
-
 import React from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
@@ -27,46 +26,41 @@ import {
   MoreHorizontal
 } from 'lucide-react';
 
-// Type definitions for the mock data
-interface PreventivoItem {
+// Refined type definitions
+type BasePreventivoItem = {
   id: string;
   cliente: string;
   descrizione: string;
   valore: string;
+}
+
+type PreventivoItem = BasePreventivoItem & {
   data: string;
   scadenza: string;
 }
 
-interface ApprovatoItem {
-  id: string;
-  cliente: string;
-  descrizione: string;
-  valore: string;
+type ApprovatoItem = BasePreventivoItem & {
   data: string;
   inizio: string;
 }
 
-interface InCorsoItem {
-  id: string;
-  cliente: string;
-  descrizione: string;
-  valore: string;
+type InCorsoItem = BasePreventivoItem & {
   inizio: string;
   fine: string;
   stato: string;
 }
 
-interface CompletatoItem {
-  id: string;
-  cliente: string;
-  descrizione: string;
-  valore: string;
+type CompletatoItem = BasePreventivoItem & {
   completato: string;
   fatturato: string;
 }
 
-// Definizione del tipo unione più esplicito
-type ProgettoItem = PreventivoItem | ApprovatoItem | InCorsoItem | CompletatoItem;
+// Update the type to a discriminated union
+type ProgettoItem = 
+  | PreventivoItem 
+  | ApprovatoItem 
+  | InCorsoItem 
+  | CompletatoItem;
 
 // Mock data
 const preventivi: PreventivoItem[] = [
