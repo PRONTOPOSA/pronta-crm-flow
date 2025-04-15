@@ -1,45 +1,116 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { toast } from '@/components/ui/use-toast';
 
 const CompanyProfile = () => {
+  const [companyData, setCompanyData] = useState({
+    name: 'ProntoPosa S.r.l.',
+    vat: 'IT12345678901',
+    address: 'Via Roma, 123',
+    city: 'Milano',
+    postalCode: '20100',
+    country: 'Italia',
+    email: 'info@prontoposa.it',
+    phone: '+39 02 1234567'
+  });
+
+  // Carica i dati dal localStorage all'avvio
+  useEffect(() => {
+    const savedData = localStorage.getItem('companyProfile');
+    if (savedData) {
+      setCompanyData(JSON.parse(savedData));
+    }
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setCompanyData(prev => ({
+      ...prev,
+      [id.replace('company-', '')]: value
+    }));
+  };
+
+  const handleSaveProfile = () => {
+    // Salva i dati nel localStorage
+    localStorage.setItem('companyProfile', JSON.stringify(companyData));
+    
+    toast({
+      title: "Profilo aggiornato",
+      description: "I dati aziendali sono stati aggiornati con successo.",
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="company-name">Nome Azienda</Label>
-          <Input id="company-name" defaultValue="ProntoPosa S.r.l." />
+          <Input 
+            id="company-name" 
+            value={companyData.name} 
+            onChange={handleInputChange}
+          />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="vat">Partita IVA</Label>
-          <Input id="vat" defaultValue="IT12345678901" />
+          <Label htmlFor="company-vat">Partita IVA</Label>
+          <Input 
+            id="company-vat" 
+            value={companyData.vat} 
+            onChange={handleInputChange}
+          />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="address">Indirizzo</Label>
-          <Input id="address" defaultValue="Via Roma, 123" />
+          <Label htmlFor="company-address">Indirizzo</Label>
+          <Input 
+            id="company-address" 
+            value={companyData.address} 
+            onChange={handleInputChange}
+          />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="city">Città</Label>
-          <Input id="city" defaultValue="Milano" />
+          <Label htmlFor="company-city">Città</Label>
+          <Input 
+            id="company-city" 
+            value={companyData.city} 
+            onChange={handleInputChange}
+          />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="postal-code">CAP</Label>
-          <Input id="postal-code" defaultValue="20100" />
+          <Label htmlFor="company-postalCode">CAP</Label>
+          <Input 
+            id="company-postalCode" 
+            value={companyData.postalCode} 
+            onChange={handleInputChange}
+          />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="country">Paese</Label>
-          <Input id="country" defaultValue="Italia" />
+          <Label htmlFor="company-country">Paese</Label>
+          <Input 
+            id="company-country" 
+            value={companyData.country} 
+            onChange={handleInputChange}
+          />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" defaultValue="info@prontoposa.it" />
+          <Label htmlFor="company-email">Email</Label>
+          <Input 
+            id="company-email" 
+            type="email" 
+            value={companyData.email} 
+            onChange={handleInputChange}
+          />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="phone">Telefono</Label>
-          <Input id="phone" defaultValue="+39 02 1234567" />
+          <Label htmlFor="company-phone">Telefono</Label>
+          <Input 
+            id="company-phone" 
+            value={companyData.phone} 
+            onChange={handleInputChange}
+          />
         </div>
       </div>
       
@@ -56,7 +127,7 @@ const CompanyProfile = () => {
       <Separator />
       
       <div className="flex justify-end">
-        <Button>Salva Profilo</Button>
+        <Button onClick={handleSaveProfile}>Salva Profilo</Button>
       </div>
     </div>
   );
