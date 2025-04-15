@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -80,6 +81,7 @@ export default function Auth() {
     }
 
     try {
+      // Semplifichiamo la registrazione passando solo i metadati essenziali
       const { error } = await supabase.auth.signUp({
         email: signupData.email,
         password: signupData.password,
