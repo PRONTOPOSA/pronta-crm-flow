@@ -12,7 +12,7 @@ interface User {
   nome: string;
   cognome: string;
   email: string;
-  ruolo: 'amministratore' | 'venditore' | 'installatore' | 'segretaria' | 'call_center' | 'verifica_qualita';
+  ruolo: 'admin' | 'venditore' | 'operatore';
   data_creazione: string;
 }
 
@@ -32,12 +32,22 @@ const UserTable = () => {
     }
   });
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return '';
     return new Date(dateString).toLocaleDateString('it-IT', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
     });
+  };
+
+  const getRoleLabel = (role: string) => {
+    switch (role) {
+      case 'admin': return 'Amministratore';
+      case 'venditore': return 'Venditore';
+      case 'operatore': return 'Operatore';
+      default: return role;
+    }
   };
 
   if (isLoading) {
@@ -70,7 +80,7 @@ const UserTable = () => {
               <TableCell>{user.nome}</TableCell>
               <TableCell>{user.cognome}</TableCell>
               <TableCell>{user.email}</TableCell>
-              <TableCell className="capitalize">{user.ruolo.replace('_', ' ')}</TableCell>
+              <TableCell className="capitalize">{getRoleLabel(user.ruolo)}</TableCell>
               <TableCell>{user.data_creazione ? formatDate(user.data_creazione) : ''}</TableCell>
               <TableCell className="text-right">
                 <Button variant="ghost" size="icon">

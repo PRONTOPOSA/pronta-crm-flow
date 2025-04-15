@@ -16,20 +16,18 @@ interface AddUserDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+// Updated roles to match database-allowed values
 const roles = [
-  { value: 'amministratore', label: 'Amministratore' },
+  { value: 'admin', label: 'Amministratore' },
   { value: 'venditore', label: 'Venditore' },
-  { value: 'installatore', label: 'Installatore' },
-  { value: 'segretaria', label: 'Segretaria' },
-  { value: 'call_center', label: 'Call Center' },
-  { value: 'verifica_qualita', label: 'Verifica Qualità' },
+  { value: 'operatore', label: 'Operatore' },
 ];
 
 interface FormData {
   nome: string;
   cognome: string;
   email: string;
-  ruolo: string;
+  ruolo: 'admin' | 'venditore' | 'operatore';
 }
 
 const AddUserDialog = ({ open, onOpenChange }: AddUserDialogProps) => {
@@ -49,7 +47,7 @@ const AddUserDialog = ({ open, onOpenChange }: AddUserDialogProps) => {
           nome: data.nome,
           cognome: data.cognome,
           email: data.email,
-          ruolo: data.ruolo as 'amministratore' | 'venditore' | 'installatore' | 'segretaria' | 'call_center' | 'verifica_qualita',
+          ruolo: data.ruolo,
           data_creazione: new Date().toISOString()
         });
 
