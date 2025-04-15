@@ -11,7 +11,14 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Plus, Facebook, Instagram, Users, Megaphone, Gift } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 type ContactFormData = {
@@ -20,6 +27,7 @@ type ContactFormData = {
   telefono: string;
   citta: string;
   tipo: string;
+  fonte: string;
 };
 
 interface AddContactDialogProps {
@@ -32,7 +40,8 @@ export const AddContactDialog = ({ contactType }: AddContactDialogProps) => {
     email: '',
     telefono: '',
     citta: '',
-    tipo: contactType === 'clienti' ? 'privato' : contactType === 'fornitori' ? 'fornitore' : 'partner'
+    tipo: contactType === 'clienti' ? 'privato' : contactType === 'fornitori' ? 'fornitore' : 'partner',
+    fonte: ''
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,6 +49,13 @@ export const AddContactDialog = ({ contactType }: AddContactDialogProps) => {
     setNewContact(prev => ({
       ...prev,
       [name]: value
+    }));
+  };
+
+  const handleSourceChange = (value: string) => {
+    setNewContact(prev => ({
+      ...prev,
+      fonte: value
     }));
   };
 
@@ -54,8 +70,26 @@ export const AddContactDialog = ({ contactType }: AddContactDialogProps) => {
       email: '',
       telefono: '',
       citta: '',
-      tipo: contactType === 'clienti' ? 'privato' : contactType === 'fornitori' ? 'fornitore' : 'partner'
+      tipo: contactType === 'clienti' ? 'privato' : contactType === 'fornitori' ? 'fornitore' : 'partner',
+      fonte: ''
     });
+  };
+
+  const renderSourceIcon = (source: string) => {
+    switch (source) {
+      case 'facebook':
+        return <Facebook className="mr-2 h-4 w-4" />;
+      case 'instagram':
+        return <Instagram className="mr-2 h-4 w-4" />;
+      case 'referral':
+        return <Users className="mr-2 h-4 w-4" />;
+      case 'campagna':
+        return <Megaphone className="mr-2 h-4 w-4" />;
+      case 'promo':
+        return <Gift className="mr-2 h-4 w-4" />;
+      default:
+        return null;
+    }
   };
 
   return (
@@ -110,6 +144,46 @@ export const AddContactDialog = ({ contactType }: AddContactDialogProps) => {
               value={newContact.citta} 
               onChange={handleInputChange}
             />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="fonte">Fonte</Label>
+            <Select onValueChange={handleSourceChange} value={newContact.fonte}>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleziona la fonte" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="facebook">
+                  <div className="flex items-center">
+                    <Facebook className="mr-2 h-4 w-4" />
+                    Facebook
+                  </div>
+                </SelectItem>
+                <SelectItem value="instagram">
+                  <div className="flex items-center">
+                    <Instagram className="mr-2 h-4 w-4" />
+                    Instagram
+                  </div>
+                </SelectItem>
+                <SelectItem value="referral">
+                  <div className="flex items-center">
+                    <Users className="mr-2 h-4 w-4" />
+                    Referral
+                  </div>
+                </SelectItem>
+                <SelectItem value="campagna">
+                  <div className="flex items-center">
+                    <Megaphone className="mr-2 h-4 w-4" />
+                    Campagna Marketing
+                  </div>
+                </SelectItem>
+                <SelectItem value="promo">
+                  <div className="flex items-center">
+                    <Gift className="mr-2 h-4 w-4" />
+                    Promozione
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
         <DialogFooter>
