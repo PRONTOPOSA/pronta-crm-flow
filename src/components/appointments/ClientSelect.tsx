@@ -37,20 +37,18 @@ export const ClientSelect = ({ value, onChange }: ClientSelectProps) => {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   
-  // Make sure we always have a string for filtering, even if searchQuery is undefined
-  const safeSearchQuery = searchQuery || "";
-  
+  // Defensive programming: ensure filteredClients is always an array
   const filteredClients = useMemo(() => {
-    if (!safeSearchQuery) return clientsData;
+    const filteredData = clientsData.filter(client => {
+      if (!searchQuery) return true;
+      const searchLower = searchQuery.toLowerCase();
+      return client.name.toLowerCase().includes(searchLower) || 
+             client.email.toLowerCase().includes(searchLower);
+    });
     
-    const searchLower = safeSearchQuery.toLowerCase();
-    return clientsData.filter(client => 
-      client.name.toLowerCase().includes(searchLower) || 
-      client.email.toLowerCase().includes(searchLower)
-    );
-  }, [safeSearchQuery]);
+    return filteredData || []; // Return empty array if undefined
+  }, [searchQuery]);
 
-  // Make sure we always return a valid string for the display value
   const displayValue = value || "Seleziona cliente...";
   
   return (
@@ -70,7 +68,7 @@ export const ClientSelect = ({ value, onChange }: ClientSelectProps) => {
         <Command>
           <CommandInput 
             placeholder="Cerca cliente..." 
-            value={safeSearchQuery}
+            value={searchQuery}
             onValueChange={setSearchQuery}
           />
           <CommandEmpty>Nessun cliente trovato.</CommandEmpty>
