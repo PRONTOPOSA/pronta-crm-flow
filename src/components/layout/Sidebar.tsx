@@ -22,7 +22,7 @@ const Sidebar = () => {
       
       <nav className="flex-1 overflow-y-auto py-4">
         <ul className="space-y-1 px-2">
-          <SidebarItem to="/" icon={<LayoutDashboard size={20} />} label="Dashboard" />
+          <SidebarItem to="/dashboard" icon={<LayoutDashboard size={20} />} label="Dashboard" />
           <SidebarItem to="/contatti" icon={<Users size={20} />} label="Contatti" />
           <SidebarItem to="/appuntamenti" icon={<Calendar size={20} />} label="Calendario" />
           <SidebarItem to="/progetti" icon={<FileText size={20} />} label="Progetti" />
