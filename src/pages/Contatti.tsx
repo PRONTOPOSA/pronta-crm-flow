@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { 
   Tabs, 
@@ -19,8 +19,9 @@ import {
 import { AddContactDialog } from '@/components/contacts/AddContactDialog';
 import { ContactFilters } from '@/components/contacts/ContactFilters';
 import { ContactTable } from '@/components/contacts/ContactTable';
+import { ContactFormData } from '@/components/contacts/types';
 
-const { clientiData, fornitoriData, partnerData } = {
+const initialData = {
   clientiData: [
     { id: '1', nome: 'Marco Rossi', tipo: 'privato', email: 'marco.rossi@email.it', telefono: '333 1234567', citta: 'Milano', stato: 'attivo' },
     { id: '2', nome: 'Laura Bianchi', tipo: 'privato', email: 'laura.b@email.it', telefono: '339 9876543', citta: 'Roma', stato: 'attivo' },
@@ -42,26 +43,68 @@ const { clientiData, fornitoriData, partnerData } = {
 const ITEMS_PER_PAGE = 2;
 
 const Contatti = () => {
+  const [contactsData, setContactsData] = useState(initialData);
   const [activeTab, setActiveTab] = useState('clienti');
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     setCurrentPage(1); // Reset to first page when changing tabs
   };
 
+  const handleAddContact = (newContact: ContactFormData) => {
+    const newId = Date.now().toString();
+    const contactType = activeTab === 'clienti' ? 'privato' : 
+                       activeTab === 'fornitori' ? 'fornitore' : 'partner';
+                       
+    const contactToAdd = {
+      id: newId,
+      nome: newContact.nome,
+      tipo: contactType,
+      email: newContact.email,
+      telefono: newContact.telefono || '',
+      citta: newContact.citta || '',
+      stato: 'attivo'
+    };
+
+    setContactsData(prevData => {
+      if (activeTab === 'clienti') {
+        return {
+          ...prevData,
+          clientiData: [...prevData.clientiData, contactToAdd]
+        };
+      } else if (activeTab === 'fornitori') {
+        return {
+          ...prevData,
+          fornitoriData: [...prevData.fornitoriData, contactToAdd]
+        };
+      } else {
+        return {
+          ...prevData,
+          partnerData: [...prevData.partnerData, contactToAdd]
+        };
+      }
+    });
+  };
+
   // Get the correct data set based on active tab
   const getActiveData = () => {
-    switch (activeTab) {
-      case 'clienti':
-        return clientiData;
-      case 'fornitori':
-        return fornitoriData;
-      case 'partner':
-        return partnerData;
-      default:
-        return [];
+    const dataKey = `${activeTab}Data` as keyof typeof contactsData;
+    const data = contactsData[dataKey];
+    
+    // Filter data based on search term if present
+    if (searchTerm.trim() !== '') {
+      const searchLower = searchTerm.toLowerCase();
+      return data.filter(contact => 
+        contact.nome.toLowerCase().includes(searchLower) ||
+        contact.email.toLowerCase().includes(searchLower) ||
+        contact.telefono.toLowerCase().includes(searchLower) ||
+        contact.citta.toLowerCase().includes(searchLower)
+      );
     }
+    
+    return data;
   };
 
   const activeData = getActiveData();
@@ -79,6 +122,15 @@ const Contatti = () => {
     }
   };
 
+  // Reset to first page when search results change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+  };
+
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -88,10 +140,13 @@ const Contatti = () => {
             <p className="text-gray-500">Gestisci clienti, fornitori e partner</p>
           </div>
           
-          <AddContactDialog contactType={activeTab as 'clienti' | 'fornitori' | 'partner'} />
+          <AddContactDialog 
+            contactType={activeTab as 'clienti' | 'fornitori' | 'partner'} 
+            onAddContact={handleAddContact}
+          />
         </div>
         
-        <ContactFilters />
+        <ContactFilters onSearch={handleSearch} />
         
         <Tabs defaultValue="clienti" onValueChange={handleTabChange}>
           <TabsList className="grid w-full grid-cols-3">

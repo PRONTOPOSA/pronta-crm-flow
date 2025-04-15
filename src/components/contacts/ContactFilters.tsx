@@ -1,10 +1,22 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Filter } from 'lucide-react';
 
-export const ContactFilters = () => {
+interface ContactFiltersProps {
+  onSearch?: (term: string) => void;
+}
+
+export const ContactFilters = ({ onSearch }: ContactFiltersProps) => {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    onSearch && onSearch(value);
+  };
+
   return (
     <div className="flex flex-col md:flex-row gap-4">
       <div className="relative flex-1">
@@ -13,6 +25,8 @@ export const ContactFilters = () => {
           type="text" 
           placeholder="Cerca per nome, email, telefono..." 
           className="pl-10 w-full"
+          value={searchTerm}
+          onChange={handleSearchChange}
         />
       </div>
       

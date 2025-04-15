@@ -23,9 +23,10 @@ import { ContactFormData, ContactType } from './types';
 
 interface AddContactDialogProps {
   contactType: ContactType;
+  onAddContact?: (contact: ContactFormData) => void;
 }
 
-export const AddContactDialog = ({ contactType }: AddContactDialogProps) => {
+export const AddContactDialog = ({ contactType, onAddContact }: AddContactDialogProps) => {
   const [open, setOpen] = useState(false);
   const [newContact, setNewContact] = useState<ContactFormData>({
     nome: '',
@@ -60,11 +61,27 @@ export const AddContactDialog = ({ contactType }: AddContactDialogProps) => {
   };
 
   const handleAddContact = () => {
+    if (!newContact.nome || !newContact.email) {
+      toast({
+        title: "Errore",
+        description: "Nome e email sono campi obbligatori.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Notifica l'aggiunta del contatto
     toast({
       title: "Contatto aggiunto",
       description: `${newContact.nome} è stato aggiunto con successo.`,
     });
     
+    // Passa il nuovo contatto al componente principale
+    if (onAddContact) {
+      onAddContact(newContact);
+    }
+    
+    // Resetta il form
     setNewContact({
       nome: '',
       email: '',
