@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 
-interface Project {
+export interface Project {
   id: string;
   client: string;
   description: string;

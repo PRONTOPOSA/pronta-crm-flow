@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +9,6 @@ import AppointmentList from '@/components/dashboard/AppointmentList';
 import { useToast } from '@/hooks/use-toast';
 import { mockVenditori } from '@/types/venditori';
 
-// Definizione dei tipi corretti per gli appuntamenti
 interface Appointment {
   id: string;
   title: string;
@@ -23,35 +21,30 @@ interface Appointment {
   venditore_nome?: string;
 }
 
-// Mock data per i progetti (richiesto dal ProjectTable component)
 const projects = [
   {
     id: '1',
-    nome: 'Ristrutturazione Villa Bianchi',
-    cliente: 'Famiglia Bianchi',
-    stato: 'in_corso',
-    budget: 45000,
-    createdAt: '2025-03-15T10:00:00Z'
+    client: 'Famiglia Bianchi',
+    description: 'Ristrutturazione Villa Bianchi',
+    status: 'preventivo' as const,
+    deadline: '15/05/2025'
   },
   {
     id: '2',
-    nome: 'Infissi Condominio Aurora',
-    cliente: 'Condominio Aurora',
-    stato: 'preventivo',
-    budget: 28500,
-    createdAt: '2025-04-05T14:30:00Z'
+    client: 'Condominio Aurora',
+    description: 'Infissi Condominio Aurora',
+    status: 'approvato' as const,
+    deadline: '30/04/2025'
   },
   {
     id: '3',
-    nome: 'Serramenti Uffici Tech Solutions',
-    cliente: 'Tech Solutions SRL',
-    stato: 'completato',
-    budget: 12800,
-    createdAt: '2025-02-20T09:15:00Z'
+    client: 'Tech Solutions SRL',
+    description: 'Serramenti Uffici Tech Solutions',
+    status: 'completato' as const,
+    deadline: '20/03/2025'
   }
 ];
 
-// Mock data per gli appuntamenti con i tipi corretti
 const appointments: Appointment[] = [
   { 
     id: '1', 
@@ -110,34 +103,33 @@ const appointments: Appointment[] = [
   },
 ];
 
-// Mock data per le statistiche mensili con i tipi corretti
 const monthlyStats = [
   {
     title: "Fatturato Mensile",
     value: "€32,450",
     icon: <DollarSign />,
-    change: { value: 15, type: "increase" },
+    change: { value: 15, type: "increase" as const },
     trend: "positive" as const
   },
   {
     title: "Nuovi Clienti",
     value: "24",
     icon: <Users />,
-    change: { value: 12, type: "increase" },
+    change: { value: 12, type: "increase" as const },
     trend: "positive" as const
   },
   {
     title: "Progetti Completati",
     value: "16",
     icon: <Package />,
-    change: { value: 3, type: "decrease" },
+    change: { value: 3, type: "decrease" as const },
     trend: "negative" as const
   },
   {
     title: "Preventivi Approvati",
     value: "28",
     icon: <ArrowUpRight />,
-    change: { value: 8, type: "increase" },
+    change: { value: 8, type: "increase" as const },
     trend: "positive" as const
   }
 ];
@@ -150,13 +142,10 @@ const Dashboard = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Simuliamo il caricamento dell'utente e il controllo se è un venditore
     const fetchCurrentUser = async () => {
-      // Simula un utente loggato (in un caso reale, questo verrebbe da Supabase auth)
       const mockUser = { id: 'user-1' };
       setCurrentUser(mockUser);
       
-      // Verifica se l'utente è un venditore
       const venditore = mockVenditori.find(v => v.user_id === mockUser.id);
       
       if (venditore) {
@@ -169,7 +158,6 @@ const Dashboard = () => {
     fetchCurrentUser();
   }, []);
 
-  // Filtra gli appuntamenti in base al venditore selezionato
   const filteredAppointments = selectedVenditoreId 
     ? appointments.filter(app => app.venditore_id === selectedVenditoreId)
     : appointments;
