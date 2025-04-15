@@ -43,15 +43,15 @@ const AddUserDialog = ({ open, onOpenChange }: AddUserDialogProps) => {
       
       const { error } = await supabase
         .from('profiles')
-        .insert([{
+        .insert({
           id: userId,
-          user_id: userId, // Required field based on error
+          user_id: userId, 
           nome: data.nome,
           cognome: data.cognome,
           email: data.email,
-          ruolo: data.ruolo,
+          ruolo: data.ruolo as 'amministratore' | 'venditore' | 'installatore' | 'segretaria' | 'call_center' | 'verifica_qualita',
           data_creazione: new Date().toISOString()
-        }]);
+        });
 
       if (error) throw error;
 
