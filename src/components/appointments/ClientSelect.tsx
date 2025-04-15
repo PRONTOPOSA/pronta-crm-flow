@@ -37,17 +37,23 @@ export const ClientSelect = ({ value, onChange }: ClientSelectProps) => {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   
+  // Safe filtering that ensures we always return an array
   const filteredClients = useMemo(() => {
-    if (!searchQuery) return clientsData;
+    if (!searchQuery) {
+      return clientsData || [];
+    }
     
     const searchLower = searchQuery.toLowerCase();
-    return clientsData.filter(client => 
+    const filtered = clientsData.filter(client => 
       client.name.toLowerCase().includes(searchLower) || 
       client.email.toLowerCase().includes(searchLower)
     );
+    
+    return filtered || [];
   }, [searchQuery]);
 
-  const selectedClient = clientsData.find(client => client.name === value);
+  // Get the selected client for display
+  const selectedClient = value ? clientsData.find(client => client.name === value) : null;
   const displayValue = selectedClient?.name || "Seleziona cliente...";
   
   return (
@@ -71,29 +77,31 @@ export const ClientSelect = ({ value, onChange }: ClientSelectProps) => {
             onValueChange={setSearchQuery}
           />
           <CommandEmpty>Nessun cliente trovato.</CommandEmpty>
-          <CommandGroup className="max-h-64 overflow-y-auto">
-            {filteredClients.map((client) => (
-              <CommandItem
-                key={client.id}
-                value={client.name}
-                onSelect={() => {
-                  onChange(client.name);
-                  setOpen(false);
-                }}
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    value === client.name ? "opacity-100" : "opacity-0"
-                  )}
-                />
-                <div className="flex flex-col">
-                  <span>{client.name}</span>
-                  <span className="text-xs text-muted-foreground">{client.email}</span>
-                </div>
-              </CommandItem>
-            ))}
-          </CommandGroup>
+          {filteredClients && filteredClients.length > 0 && (
+            <CommandGroup className="max-h-64 overflow-y-auto">
+              {filteredClients.map((client) => (
+                <CommandItem
+                  key={client.id}
+                  value={client.name}
+                  onSelect={() => {
+                    onChange(client.name);
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === client.name ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  <div className="flex flex-col">
+                    <span>{client.name}</span>
+                    <span className="text-xs text-muted-foreground">{client.email}</span>
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
         </Command>
       </PopoverContent>
     </Popover>
