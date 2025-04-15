@@ -1,9 +1,8 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { UserPlus, Edit, Trash2 } from 'lucide-react';
-import AddUserDialog from './AddUserDialog';
+import { Edit, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 
@@ -17,8 +16,6 @@ interface User {
 }
 
 const UserTable = () => {
-  const [isAddUserOpen, setIsAddUserOpen] = useState(false);
-
   const { data: users, isLoading } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
@@ -56,13 +53,6 @@ const UserTable = () => {
 
   return (
     <div>
-      <div className="mb-4 flex justify-end">
-        <Button onClick={() => setIsAddUserOpen(true)}>
-          <UserPlus className="mr-2 h-4 w-4" />
-          Aggiungi Utente
-        </Button>
-      </div>
-
       <Table>
         <TableHeader>
           <TableRow>
@@ -94,8 +84,6 @@ const UserTable = () => {
           ))}
         </TableBody>
       </Table>
-
-      <AddUserDialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen} />
     </div>
   );
 };
