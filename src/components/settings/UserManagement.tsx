@@ -1,13 +1,101 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogFooter,
+  DialogTrigger
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toast } from '@/components/ui/use-toast';
 
 const UserManagement = () => {
+  const [newUserData, setNewUserData] = useState({
+    nome: '',
+    email: '',
+    ruolo: 'Operatore'
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setNewUserData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleAddUser = () => {
+    // This would typically connect to a backend API
+    // For now, we'll just show a success message
+    toast({
+      title: "Utente aggiunto",
+      description: `${newUserData.nome} è stato aggiunto con successo.`,
+    });
+    
+    // Reset form
+    setNewUserData({
+      nome: '',
+      email: '',
+      ruolo: 'Operatore'
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="space-y-4">
         <div className="flex justify-end">
-          <Button variant="outline">+ Aggiungi Utente</Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline">+ Aggiungi Utente</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Aggiungi Nuovo Utente</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="nome">Nome Completo</Label>
+                  <Input 
+                    id="nome" 
+                    name="nome" 
+                    value={newUserData.nome} 
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input 
+                    id="email" 
+                    name="email" 
+                    type="email" 
+                    value={newUserData.email} 
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="ruolo">Ruolo</Label>
+                  <select 
+                    id="ruolo" 
+                    name="ruolo" 
+                    className="w-full p-2 border rounded-md"
+                    value={newUserData.ruolo}
+                    onChange={handleInputChange}
+                  >
+                    <option value="Amministratore">Amministratore</option>
+                    <option value="Venditore">Venditore</option>
+                    <option value="Operatore">Operatore</option>
+                  </select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button onClick={handleAddUser}>Aggiungi</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
         
         <div className="overflow-x-auto">
