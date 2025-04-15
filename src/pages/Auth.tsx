@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -87,8 +86,7 @@ export default function Auth() {
         options: {
           data: {
             nome: signupData.nome,
-            cognome: signupData.cognome,
-            ruolo: 'operatore' // Ruolo predefinito
+            cognome: signupData.cognome
           }
         }
       });
@@ -100,6 +98,7 @@ export default function Auth() {
         description: "L'account è stato creato con successo. Controlla la tua email per confermare la registrazione.",
       });
     } catch (error: any) {
+      console.error("Signup error:", error);
       toast({
         title: "Errore durante la registrazione",
         description: error.message || "Si è verificato un errore durante la registrazione",
