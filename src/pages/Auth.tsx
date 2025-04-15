@@ -81,7 +81,8 @@ export default function Auth() {
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
+      // Registra l'utente con i metadati necessari
+      const { data, error } = await supabase.auth.signUp({
         email: signupData.email,
         password: signupData.password,
         options: {
@@ -94,12 +95,14 @@ export default function Auth() {
 
       if (error) throw error;
       
+      console.log("Utente registrato con successo:", data);
+      
       toast({
         title: "Registrazione completata",
         description: "L'account è stato creato con successo. Controlla la tua email per confermare la registrazione.",
       });
 
-      // Reset form after successful signup
+      // Reset del form dopo la registrazione
       setSignupData({
         email: '',
         password: '',
