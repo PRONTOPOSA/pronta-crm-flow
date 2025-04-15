@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Calendar, ArrowDownRight, ArrowUpRight, DollarSign, Users, Package } from 'lucide-react';
-import StatCard from '@/components/dashboard/StatCard';
+import MonthlyStats from '@/components/dashboard/MonthlyStats';
 import ProjectTable from '@/components/dashboard/ProjectTable';
 import AppointmentList from '@/components/dashboard/AppointmentList';
-import { useToast } from '@/hooks/use-toast';
+import CalendarPreview from '@/components/dashboard/CalendarPreview';
 import { mockVenditori } from '@/types/venditori';
 
 interface Appointment {
@@ -103,43 +100,11 @@ const appointments: Appointment[] = [
   },
 ];
 
-const monthlyStats = [
-  {
-    title: "Fatturato Mensile",
-    value: "€32,450",
-    icon: <DollarSign />,
-    change: { value: 15, type: "increase" as const },
-    trend: "positive" as const
-  },
-  {
-    title: "Nuovi Clienti",
-    value: "24",
-    icon: <Users />,
-    change: { value: 12, type: "increase" as const },
-    trend: "positive" as const
-  },
-  {
-    title: "Progetti Completati",
-    value: "16",
-    icon: <Package />,
-    change: { value: 3, type: "decrease" as const },
-    trend: "negative" as const
-  },
-  {
-    title: "Preventivi Approvati",
-    value: "28",
-    icon: <ArrowUpRight />,
-    change: { value: 8, type: "increase" as const },
-    trend: "positive" as const
-  }
-];
-
 const Dashboard = () => {
   const [selectedVenditoreId, setSelectedVenditoreId] = useState<string | undefined>(undefined);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isVenditore, setIsVenditore] = useState(false);
   const [venditoreDetails, setVenditoreDetails] = useState<any>(null);
-  const { toast } = useToast();
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -175,48 +140,20 @@ const Dashboard = () => {
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {monthlyStats.map((stat, index) => (
-            <StatCard 
-              key={index}
-              title={stat.title}
-              value={stat.value}
-              icon={stat.icon}
-              change={stat.change}
-              trend={stat.trend}
-            />
-          ))}
-        </div>
+        <MonthlyStats />
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           <AppointmentList 
-            appointments={filteredAppointments} 
-            showVenditoreFilter={!isVenditore} 
+            appointments={filteredAppointments}
+            showVenditoreFilter={!isVenditore}
             onVenditoreChange={!isVenditore ? setSelectedVenditoreId : undefined}
             selectedVenditoreId={selectedVenditoreId}
           />
-          
           <ProjectTable projects={projects} />
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Calendario Mensile</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex justify-center my-4">
-                <Calendar className="h-24 w-24 text-gray-400" />
-              </div>
-              <div className="text-center text-gray-500">
-                <p>Visualizza il calendario completo per gestire</p>
-                <p>tutti gli appuntamenti e gli eventi programmati.</p>
-                <Button variant="outline" className="mt-4">
-                  Vai al Calendario
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <CalendarPreview />
         </div>
       </div>
     </MainLayout>
