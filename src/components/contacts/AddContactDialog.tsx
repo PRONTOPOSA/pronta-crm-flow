@@ -7,7 +7,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogTrigger
+  DialogTrigger,
+  DialogDescription,
+  DialogClose
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -24,6 +26,7 @@ interface AddContactDialogProps {
 }
 
 export const AddContactDialog = ({ contactType }: AddContactDialogProps) => {
+  const [open, setOpen] = useState(false);
   const [newContact, setNewContact] = useState<ContactFormData>({
     nome: '',
     email: '',
@@ -76,10 +79,13 @@ export const AddContactDialog = ({ contactType }: AddContactDialogProps) => {
       dataContatto: '',
       note: ''
     });
+    
+    // Chiude il dialog dopo aver aggiunto il contatto
+    setOpen(false);
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="bg-secondary hover:bg-secondary/90">
           <Plus className="h-4 w-4 mr-2" />
@@ -92,6 +98,9 @@ export const AddContactDialog = ({ contactType }: AddContactDialogProps) => {
             {contactType === 'clienti' ? 'Nuovo Cliente' : 
              contactType === 'fornitori' ? 'Nuovo Fornitore' : 'Nuovo Partner'}
           </DialogTitle>
+          <DialogDescription>
+            Inserisci i dati del nuovo contatto. Clicca su Aggiungi quando hai finito.
+          </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <PersonalInfoSection
@@ -142,6 +151,9 @@ export const AddContactDialog = ({ contactType }: AddContactDialogProps) => {
           </div>
         </div>
         <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline">Annulla</Button>
+          </DialogClose>
           <Button onClick={handleAddContact}>Aggiungi</Button>
         </DialogFooter>
       </DialogContent>
