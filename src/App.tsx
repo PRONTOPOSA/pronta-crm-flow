@@ -1,4 +1,3 @@
-
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
@@ -13,6 +12,7 @@ import Impostazioni from "./pages/Impostazioni";
 import Comunicazioni from "./pages/Comunicazioni";
 import Reportistica from "./pages/Reportistica";
 import NotFound from "./pages/NotFound";
+import UserManagement from "./pages/UserManagement";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +32,7 @@ const App = () => (
           <Route path="/impostazioni" element={<Impostazioni />} />
           <Route path="/comunicazioni" element={<Comunicazioni />} />
           <Route path="/reportistica" element={<Reportistica />} />
+          <Route path="/users" element={<UserManagement />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

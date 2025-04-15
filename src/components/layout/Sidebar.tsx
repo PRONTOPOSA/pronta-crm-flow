@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -10,7 +9,8 @@ import {
   Settings,
   LogOut,
   Mail,
-  UserCircle
+  UserCircle,
+  UsersIcon
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -31,14 +31,10 @@ const Sidebar = () => {
           <SidebarItem to="/contatti" icon={<Users size={20} />} label="Contatti" active={location.pathname === '/contatti'} />
           <SidebarItem to="/appuntamenti" icon={<Calendar size={20} />} label="Calendario" active={location.pathname === '/appuntamenti'} />
           <SidebarItem to="/progetti" icon={<FileText size={20} />} label="Progetti" active={location.pathname === '/progetti'} />
-          
-          {/* Show venditori section to all users in demo mode */}
           <SidebarItem to="/venditori" icon={<UserCircle size={20} />} label="Venditori" active={location.pathname === '/venditori'} />
-          
           <SidebarItem to="/comunicazioni" icon={<Mail size={20} />} label="Comunicazioni" active={location.pathname === '/comunicazioni'} />
-          
-          {/* Show reportistica to all users in demo mode */}
           <SidebarItem to="/reportistica" icon={<PieChart size={20} />} label="Reportistica" active={location.pathname === '/reportistica'} />
+          <SidebarItem to="/users" icon={<UsersIcon size={20} />} label="Utenti" active={location.pathname === '/users'} />
         </ul>
       </nav>
       
