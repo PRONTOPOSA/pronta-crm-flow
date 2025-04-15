@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { v4 as uuidv4 } from 'uuid';
 
 interface AddUserDialogProps {
   open: boolean;
@@ -37,9 +38,20 @@ const AddUserDialog = ({ open, onOpenChange }: AddUserDialogProps) => {
 
   const onSubmit = async (data: FormData) => {
     try {
+      // Generate UUID for the user
+      const userId = uuidv4();
+      
       const { error } = await supabase
         .from('profiles')
-        .insert([data]);
+        .insert([{
+          id: userId,
+          user_id: userId, // Required field based on error
+          nome: data.nome,
+          cognome: data.cognome,
+          email: data.email,
+          ruolo: data.ruolo,
+          data_creazione: new Date().toISOString()
+        }]);
 
       if (error) throw error;
 
@@ -52,6 +64,7 @@ const AddUserDialog = ({ open, onOpenChange }: AddUserDialogProps) => {
       onOpenChange(false);
       form.reset();
     } catch (error) {
+      console.error("Error adding user:", error);
       toast({
         title: "Errore",
         description: "Si è verificato un errore durante l'aggiunta dell'utente.",

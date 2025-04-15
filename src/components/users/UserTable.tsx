@@ -71,7 +71,7 @@ const UserTable = () => {
               <TableCell>{user.cognome}</TableCell>
               <TableCell>{user.email}</TableCell>
               <TableCell className="capitalize">{user.ruolo.replace('_', ' ')}</TableCell>
-              <TableCell>{formatDate(user.data_creazione)}</TableCell>
+              <TableCell>{user.data_creazione ? formatDate(user.data_creazione) : ''}</TableCell>
               <TableCell className="text-right">
                 <Button variant="ghost" size="icon">
                   <Edit className="h-4 w-4" />
