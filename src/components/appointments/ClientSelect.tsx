@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Command,
   CommandEmpty,
@@ -35,7 +35,18 @@ interface ClientSelectProps {
 
 export const ClientSelect = ({ value, onChange }: ClientSelectProps) => {
   const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  const filteredClients = useMemo(() => {
+    if (!searchQuery) return clientsData;
+    
+    return clientsData.filter(client => 
+      client.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      client.email.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery]);
+
+  const selectedClient = clientsData.find(client => client.name === value);
   
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -54,12 +65,12 @@ export const ClientSelect = ({ value, onChange }: ClientSelectProps) => {
         <Command>
           <CommandInput 
             placeholder="Cerca cliente..." 
-            value={search}
-            onValueChange={setSearch}
+            value={searchQuery}
+            onValueChange={setSearchQuery}
           />
           <CommandEmpty>Nessun cliente trovato.</CommandEmpty>
           <CommandGroup className="max-h-64 overflow-y-auto">
-            {clientsData.map((client) => (
+            {filteredClients.map((client) => (
               <CommandItem
                 key={client.id}
                 value={client.name}
