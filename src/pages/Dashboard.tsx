@@ -6,7 +6,6 @@ import ProjectTable from '@/components/dashboard/ProjectTable';
 import AppointmentList from '@/components/dashboard/AppointmentList';
 import CalendarPreview from '@/components/dashboard/CalendarPreview';
 import { mockVenditori } from '@/types/venditori';
-import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Appointment {
@@ -22,7 +21,14 @@ interface Appointment {
 }
 
 const Dashboard = () => {
-  const { profile, isVenditore } = useAuth();
+  // Demo user role
+  const isVenditore = false;
+  const profile = {
+    nome: "Mario",
+    cognome: "Rossi",
+    email: "mario.rossi@example.com"
+  };
+  
   const [selectedVenditoreId, setSelectedVenditoreId] = useState<string | undefined>(undefined);
   const [venditoreDetails, setVenditoreDetails] = useState<any>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);

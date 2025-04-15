@@ -12,11 +12,12 @@ import {
   Mail,
   UserCircle
 } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
 
 const Sidebar = () => {
   const location = useLocation();
-  const { isAdmin, isVenditore, signOut } = useAuth();
+  // Define static roles for demonstration purposes
+  const isAdmin = true; // For demo, we'll show all admin features
+  const isVenditore = true; // For demo, we'll show all vendor features
 
   return (
     <div className="h-screen w-64 bg-primary text-white flex flex-col shadow-lg hidden md:flex">
@@ -31,29 +32,20 @@ const Sidebar = () => {
           <SidebarItem to="/appuntamenti" icon={<Calendar size={20} />} label="Calendario" active={location.pathname === '/appuntamenti'} />
           <SidebarItem to="/progetti" icon={<FileText size={20} />} label="Progetti" active={location.pathname === '/progetti'} />
           
-          {/* I venditori possono vedere solo determinate sezioni */}
-          {isAdmin && (
-            <SidebarItem to="/venditori" icon={<UserCircle size={20} />} label="Venditori" active={location.pathname === '/venditori'} />
-          )}
+          {/* Show venditori section to all users in demo mode */}
+          <SidebarItem to="/venditori" icon={<UserCircle size={20} />} label="Venditori" active={location.pathname === '/venditori'} />
           
           <SidebarItem to="/comunicazioni" icon={<Mail size={20} />} label="Comunicazioni" active={location.pathname === '/comunicazioni'} />
           
-          {/* Solo admin e venditori possono accedere alla reportistica */}
-          {(isAdmin || isVenditore) && (
-            <SidebarItem to="/reportistica" icon={<PieChart size={20} />} label="Reportistica" active={location.pathname === '/reportistica'} />
-          )}
+          {/* Show reportistica to all users in demo mode */}
+          <SidebarItem to="/reportistica" icon={<PieChart size={20} />} label="Reportistica" active={location.pathname === '/reportistica'} />
         </ul>
       </nav>
       
       <div className="p-4 border-t border-blue-800">
         <ul className="space-y-1 px-2">
-          {isAdmin && (
-            <SidebarItem to="/impostazioni" icon={<Settings size={20} />} label="Impostazioni" active={location.pathname === '/impostazioni'} />
-          )}
-          <li 
-            className="flex items-center px-4 py-2 text-gray-300 hover:bg-blue-800 hover:text-white rounded-md cursor-pointer transition-colors"
-            onClick={() => signOut()}
-          >
+          <SidebarItem to="/impostazioni" icon={<Settings size={20} />} label="Impostazioni" active={location.pathname === '/impostazioni'} />
+          <li className="flex items-center px-4 py-2 text-gray-300 hover:bg-blue-800 hover:text-white rounded-md cursor-pointer transition-colors">
             <LogOut size={20} className="mr-3" />
             <span>Logout</span>
           </li>

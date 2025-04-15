@@ -4,7 +4,6 @@ import { Bell, Search, Menu, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/context/AuthContext';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -15,7 +14,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const TopBar = () => {
-  const { profile, isAdmin, isVenditore, isOperatore, signOut } = useAuth();
+  // Demo user profile
+  const profile = {
+    nome: "Mario",
+    cognome: "Rossi",
+    email: "mario.rossi@example.com"
+  };
+  
+  // Define static roles for demo
+  const isAdmin = true;
+  const isVenditore = false;
+  const isOperatore = false;
 
   const getRoleName = () => {
     if (isAdmin) return "Amministratore";
@@ -29,8 +38,9 @@ const TopBar = () => {
     return `${profile.nome.charAt(0)}${profile.cognome.charAt(0)}`;
   };
 
-  const handleLogout = async () => {
-    await signOut();
+  const handleLogout = () => {
+    console.log("Logout clicked");
+    // In a real app, this would handle logout
   };
 
   return (
