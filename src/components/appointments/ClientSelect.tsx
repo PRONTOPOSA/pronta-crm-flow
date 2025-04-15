@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Command,
   CommandEmpty,
@@ -35,10 +35,7 @@ interface ClientSelectProps {
 
 export const ClientSelect = ({ value, onChange }: ClientSelectProps) => {
   const [open, setOpen] = useState(false);
-  const [clients, setClients] = useState(clientsData);
   
-  const selectedClient = clients.find(client => client.name === value);
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -57,7 +54,7 @@ export const ClientSelect = ({ value, onChange }: ClientSelectProps) => {
           <CommandInput placeholder="Cerca cliente..." />
           <CommandEmpty>Nessun cliente trovato.</CommandEmpty>
           <CommandGroup className="max-h-64 overflow-y-auto">
-            {clients.map((client) => (
+            {clientsData.map((client) => (
               <CommandItem
                 key={client.id}
                 value={client.name}
