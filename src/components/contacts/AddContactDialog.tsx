@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
   Dialog,
@@ -57,7 +57,10 @@ export const AddContactDialog = ({ contactType }: AddContactDialogProps) => {
     note: ''
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Updated to handle both HTML inputs and textareas
+  const handleInputChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setNewContact(prev => ({
       ...prev,
