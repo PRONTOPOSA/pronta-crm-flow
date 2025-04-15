@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/select';
 import { Plus, CalendarClock } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import VenditoreSelect from '@/components/dashboard/VenditoreSelect';
 
 export interface AppointmentFormData {
   id: string;
@@ -34,6 +35,7 @@ export interface AppointmentFormData {
   location: string;
   technician: string;
   notes: string;
+  venditoreId?: string;
 }
 
 interface AppointmentDialogProps {
@@ -68,6 +70,13 @@ export const AppointmentDialog = ({ onAddAppointment }: AppointmentDialogProps) 
     setNewAppointment(prev => ({
       ...prev,
       type: value as 'sopralluogo' | 'installazione' | 'riunione' | 'consegna'
+    }));
+  };
+
+  const handleVenditoreChange = (venditoreId: string | undefined) => {
+    setNewAppointment(prev => ({
+      ...prev,
+      venditoreId
     }));
   };
 
@@ -257,6 +266,15 @@ export const AppointmentDialog = ({ onAddAppointment }: AppointmentDialogProps) 
                 placeholder="Nome del tecnico"
               />
             </div>
+          </div>
+          
+          <div className="grid gap-2">
+            <Label htmlFor="venditore">Venditore</Label>
+            <VenditoreSelect 
+              value={newAppointment.venditoreId} 
+              onChange={handleVenditoreChange}
+              placeholder="Seleziona venditore"
+            />
           </div>
           
           <div className="grid gap-2">

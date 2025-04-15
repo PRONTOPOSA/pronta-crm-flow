@@ -22,10 +22,12 @@ import {
   Users, 
   MapPin, 
   Clock, 
-  CheckCircle2
+  CheckCircle2,
+  UserCheck
 } from 'lucide-react';
 import { AppointmentDialog, AppointmentFormData } from '@/components/appointments/AppointmentDialog';
 import { toast } from '@/components/ui/use-toast';
+import { mockVenditori } from '@/types/venditori';
 
 // Initial mock data for appointments
 const initialAppointments = [
@@ -38,7 +40,8 @@ const initialAppointments = [
     endtime: '2025-04-15T11:30:00',
     location: 'Via Roma 123, Milano',
     technician: 'Luca Bianchi',
-    notes: 'Cliente interessato alla sostituzione di tutti gli infissi del primo piano.'
+    notes: 'Cliente interessato alla sostituzione di tutti gli infissi del primo piano.',
+    venditoreId: '1'
   },
   { 
     id: '2', 
@@ -49,7 +52,8 @@ const initialAppointments = [
     endtime: '2025-04-15T18:00:00',
     location: 'Via Verdi 45, Roma',
     technician: 'Mario Verdi',
-    notes: 'Portare tutti gli strumenti necessari e i 3 infissi già pronti.'
+    notes: 'Portare tutti gli strumenti necessari e i 3 infissi già pronti.',
+    venditoreId: '2'
   },
   { 
     id: '3', 
@@ -161,6 +165,17 @@ const Appuntamenti = () => {
     return filtered.sort((a, b) => {
       return new Date(a.datetime).getTime() - new Date(b.datetime).getTime();
     });
+  };
+
+  // Find venditore name from ID
+  const getVenditoreName = (venditoreId: string | undefined) => {
+    if (!venditoreId) return null;
+    
+    const venditore = mockVenditori.find(v => v.id === venditoreId);
+    if (venditore) {
+      return `${venditore.nome} ${venditore.cognome}`;
+    }
+    return null;
   };
   
   const todayAppointments = getFilteredAppointments();
@@ -282,6 +297,13 @@ const Appuntamenti = () => {
                           <Users className="h-4 w-4 mr-1" />
                           {appointment.technician}
                         </div>
+
+                        {appointment.venditoreId && (
+                          <div className="flex items-center text-sm text-gray-500">
+                            <UserCheck className="h-4 w-4 mr-1" />
+                            {getVenditoreName(appointment.venditoreId)}
+                          </div>
+                        )}
                       </div>
                       
                       {selectedAppointment?.id === appointment.id && (
