@@ -1,11 +1,38 @@
 
 import React from 'react';
-import { Bell, Search, Menu } from 'lucide-react';
+import { Bell, Search, Menu, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useAuth } from '@/context/AuthContext';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const TopBar = () => {
+  const { profile, isAdmin, isVenditore, isOperatore, signOut } = useAuth();
+
+  const getRoleName = () => {
+    if (isAdmin) return "Amministratore";
+    if (isVenditore) return "Venditore";
+    if (isOperatore) return "Operatore";
+    return "Utente";
+  };
+
+  const getInitials = () => {
+    if (!profile) return "U";
+    return `${profile.nome.charAt(0)}${profile.cognome.charAt(0)}`;
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+  };
+
   return (
     <header className="bg-white border-b border-gray-200 py-3 px-4 flex items-center justify-between shadow-sm">
       <div className="flex items-center md:hidden">
@@ -34,13 +61,46 @@ const TopBar = () => {
         </Button>
         
         <div className="flex items-center">
-          <Avatar className="h-9 w-9">
-            <AvatarImage src="" />
-            <AvatarFallback className="bg-primary text-white">UT</AvatarFallback>
-          </Avatar>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                <Avatar className="h-9 w-9">
+                  <AvatarImage src="" />
+                  <AvatarFallback className="bg-primary text-white">{getInitials()}</AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">
+                    {profile ? `${profile.nome} ${profile.cognome}` : "Utente"}
+                  </p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {profile?.email}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                Profilo
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                {getRoleName()}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Logout</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
           <div className="ml-3 hidden md:block">
-            <p className="text-sm font-medium">Utente Demo</p>
-            <p className="text-xs text-gray-500">Amministratore</p>
+            <p className="text-sm font-medium">
+              {profile ? `${profile.nome} ${profile.cognome}` : "Utente"}
+            </p>
+            <p className="text-xs text-gray-500">{getRoleName()}</p>
           </div>
         </div>
       </div>
