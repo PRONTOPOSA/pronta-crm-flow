@@ -40,12 +40,16 @@ export const ClientSelect = ({ value, onChange }: ClientSelectProps) => {
   const filteredClients = useMemo(() => {
     if (!searchQuery) return clientsData;
     
+    const searchLower = searchQuery.toLowerCase();
     return clientsData.filter(client => 
-      client.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      client.email.toLowerCase().includes(searchQuery.toLowerCase())
+      client.name.toLowerCase().includes(searchLower) || 
+      client.email.toLowerCase().includes(searchLower)
     );
   }, [searchQuery]);
 
+  // Find the selected client to display in the trigger button
+  const displayValue = value ? value : "Seleziona cliente...";
+  
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -55,7 +59,7 @@ export const ClientSelect = ({ value, onChange }: ClientSelectProps) => {
           aria-expanded={open}
           className="w-full justify-between"
         >
-          {value || "Seleziona cliente..."}
+          {displayValue}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -72,8 +76,8 @@ export const ClientSelect = ({ value, onChange }: ClientSelectProps) => {
               <CommandItem
                 key={client.id}
                 value={client.name}
-                onSelect={(currentValue) => {
-                  onChange(currentValue);
+                onSelect={() => {
+                  onChange(client.name);
                   setOpen(false);
                 }}
               >
