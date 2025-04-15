@@ -81,7 +81,6 @@ export default function Auth() {
     }
 
     try {
-      // Semplifichiamo la registrazione passando solo i metadati essenziali
       const { error } = await supabase.auth.signUp({
         email: signupData.email,
         password: signupData.password,
@@ -98,6 +97,14 @@ export default function Auth() {
       toast({
         title: "Registrazione completata",
         description: "L'account è stato creato con successo. Controlla la tua email per confermare la registrazione.",
+      });
+
+      // Reset form after successful signup
+      setSignupData({
+        email: '',
+        password: '',
+        nome: '',
+        cognome: '',
       });
     } catch (error: any) {
       console.error("Signup error:", error);
