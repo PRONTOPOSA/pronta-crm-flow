@@ -29,6 +29,7 @@ interface AddContactDialogProps {
 export const AddContactDialog = ({ contactType, onAddContact }: AddContactDialogProps) => {
   const [open, setOpen] = useState(false);
   const [newContact, setNewContact] = useState<ContactFormData>({
+    id: crypto.randomUUID(), // Add unique ID for each contact
     nome: '',
     email: '',
     telefono: '',
@@ -70,19 +71,26 @@ export const AddContactDialog = ({ contactType, onAddContact }: AddContactDialog
       return;
     }
     
+    // Ensure the contact has a unique ID
+    const contactToAdd = {
+      ...newContact,
+      id: newContact.id || crypto.randomUUID()
+    };
+    
     // Notifica l'aggiunta del contatto
     toast({
       title: "Contatto aggiunto",
-      description: `${newContact.nome} è stato aggiunto con successo.`,
+      description: `${contactToAdd.nome} è stato aggiunto con successo.`,
     });
     
     // Passa il nuovo contatto al componente principale
     if (onAddContact) {
-      onAddContact(newContact);
+      onAddContact(contactToAdd);
     }
     
     // Resetta il form
     setNewContact({
+      id: crypto.randomUUID(),
       nome: '',
       email: '',
       telefono: '',

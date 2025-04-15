@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -18,16 +18,17 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Plus, 
   Calendar as CalendarIcon, 
   Users, 
   MapPin, 
   Clock, 
   CheckCircle2
 } from 'lucide-react';
+import { AppointmentDialog, AppointmentFormData } from '@/components/appointments/AppointmentDialog';
+import { toast } from '@/components/ui/use-toast';
 
-// Mock data for appointments
-const appointments = [
+// Initial mock data for appointments
+const initialAppointments = [
   { 
     id: '1', 
     title: 'Sopralluogo per infissi', 
@@ -83,26 +84,86 @@ const appointments = [
     technician: 'Autista',
     notes: 'Consegna 5 portefinestre e accessori.'
   },
-];
+] as AppointmentFormData[];
 
 const Appuntamenti = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
+  const [selectedAppointment, setSelectedAppointment] = useState<AppointmentFormData | null>(null);
+  const [appointments, setAppointments] = useState<AppointmentFormData[]>([]);
+  const [typeFilter, setTypeFilter] = useState('all');
   
-  // Get appointments for the selected date
-  const getAppointmentsForDate = (date: Date | undefined) => {
+  // Load appointments from localStorage on component mount
+  useEffect(() => {
+    const savedAppointments = localStorage.getItem('appointments');
+    if (savedAppointments) {
+      setAppointments(JSON.parse(savedAppointments));
+    } else {
+      // Initialize with mock data if no saved appointments
+      setAppointments(initialAppointments);
+      localStorage.setItem('appointments', JSON.stringify(initialAppointments));
+    }
+  }, []);
+  
+  // Save appointments to localStorage when they change
+  useEffect(() => {
+    if (appointments.length > 0) {
+      localStorage.setItem('appointments', JSON.stringify(appointments));
+    }
+  }, [appointments]);
+  
+  // Add new appointment
+  const handleAddAppointment = (newAppointment: AppointmentFormData) => {
+    setAppointments(prev => [...prev, newAppointment]);
+    // Set the calendar date to the new appointment date
+    setDate(new Date(newAppointment.datetime));
+    toast({
+      title: "Appuntamento creato",
+      description: `L'appuntamento "${newAppointment.title}" è stato aggiunto con successo.`
+    });
+  };
+  
+  // Complete an appointment
+  const handleCompleteAppointment = (id: string) => {
+    setAppointments(prev => prev.filter(app => app.id !== id));
+    setSelectedAppointment(null);
+    toast({
+      title: "Appuntamento completato",
+      description: "L'appuntamento è stato contrassegnato come completato."
+    });
+  };
+  
+  // Update an appointment
+  const handleUpdateAppointment = (updatedAppointment: AppointmentFormData) => {
+    setAppointments(prev => 
+      prev.map(app => app.id === updatedAppointment.id ? updatedAppointment : app)
+    );
+    toast({
+      title: "Appuntamento aggiornato",
+      description: `L'appuntamento "${updatedAppointment.title}" è stato aggiornato.`
+    });
+  };
+  
+  // Get appointments for the selected date, filtered by type if needed
+  const getFilteredAppointments = () => {
     if (!date) return [];
+    
     const dateString = date.toISOString().split('T')[0];
     
-    return appointments.filter(appointment => {
+    let filtered = appointments.filter(appointment => {
       const appointmentDate = new Date(appointment.datetime).toISOString().split('T')[0];
       return appointmentDate === dateString;
-    }).sort((a, b) => {
+    });
+    
+    if (typeFilter !== 'all') {
+      filtered = filtered.filter(appointment => appointment.type === typeFilter);
+    }
+    
+    return filtered.sort((a, b) => {
       return new Date(a.datetime).getTime() - new Date(b.datetime).getTime();
     });
   };
   
-  const todayAppointments = getAppointmentsForDate(date);
+  const todayAppointments = getFilteredAppointments();
   
   return (
     <MainLayout>
@@ -113,10 +174,7 @@ const Appuntamenti = () => {
             <p className="text-gray-500">Gestisci sopralluoghi, installazioni e riunioni</p>
           </div>
           
-          <Button className="bg-secondary hover:bg-secondary/90">
-            <Plus className="h-4 w-4 mr-2" />
-            Nuovo Appuntamento
-          </Button>
+          <AppointmentDialog onAddAppointment={handleAddAppointment} />
         </div>
         
         <div className="flex flex-col md:flex-row gap-6">
@@ -131,6 +189,7 @@ const Appuntamenti = () => {
                   selected={date}
                   onSelect={setDate}
                   className="rounded-md border"
+                  initialFocus
                 />
                 
                 <div className="flex items-center justify-between mt-4">
@@ -148,7 +207,7 @@ const Appuntamenti = () => {
                     )}
                   </div>
                   
-                  <Select defaultValue="all">
+                  <Select value={typeFilter} onValueChange={setTypeFilter}>
                     <SelectTrigger className="w-[140px]">
                       <SelectValue placeholder="Filtra per" />
                     </SelectTrigger>
@@ -179,7 +238,7 @@ const Appuntamenti = () => {
                   {todayAppointments.map((appointment) => (
                     <div 
                       key={appointment.id} 
-                      className={`p-4 border rounded-md hover:bg-gray-50 cursor-pointer ${
+                      className={`p-4 border rounded-md hover:bg-gray-50 cursor-pointer transition-colors ${
                         selectedAppointment?.id === appointment.id ? 'border-primary bg-primary/5' : ''
                       }`}
                       onClick={() => setSelectedAppointment(appointment)}
@@ -234,7 +293,11 @@ const Appuntamenti = () => {
                             <Button size="sm" variant="outline" className="text-xs">
                               Modifica
                             </Button>
-                            <Button size="sm" className="text-xs bg-green-600 hover:bg-green-700">
+                            <Button 
+                              size="sm" 
+                              className="text-xs bg-green-600 hover:bg-green-700"
+                              onClick={() => handleCompleteAppointment(appointment.id)}
+                            >
                               <CheckCircle2 className="h-3 w-3 mr-1" />
                               Completa
                             </Button>
