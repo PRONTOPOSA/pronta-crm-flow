@@ -11,10 +11,11 @@ interface StatCardProps {
     value: number;
     type: 'increase' | 'decrease';
   };
+  trend?: 'positive' | 'negative';
   className?: string;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ title, value, icon, change, className }) => {
+const StatCard: React.FC<StatCardProps> = ({ title, value, icon, change, trend, className }) => {
   return (
     <Card className={`overflow-hidden ${className}`}>
       <CardContent className="p-6">
