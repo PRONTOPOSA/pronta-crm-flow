@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { 
@@ -38,11 +39,44 @@ const { clientiData, fornitoriData, partnerData } = {
   ]
 };
 
+const ITEMS_PER_PAGE = 2;
+
 const Contatti = () => {
   const [activeTab, setActiveTab] = useState('clienti');
+  const [currentPage, setCurrentPage] = useState(1);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
+    setCurrentPage(1); // Reset to first page when changing tabs
+  };
+
+  // Get the correct data set based on active tab
+  const getActiveData = () => {
+    switch (activeTab) {
+      case 'clienti':
+        return clientiData;
+      case 'fornitori':
+        return fornitoriData;
+      case 'partner':
+        return partnerData;
+      default:
+        return [];
+    }
+  };
+
+  const activeData = getActiveData();
+  const totalPages = Math.ceil(activeData.length / ITEMS_PER_PAGE);
+  
+  // Calculate the current page's data slice
+  const paginatedData = activeData.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE, 
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const handlePageChange = (page: number) => {
+    if (page > 0 && page <= totalPages) {
+      setCurrentPage(page);
+    }
   };
 
   return (
@@ -67,39 +101,114 @@ const Contatti = () => {
           </TabsList>
           
           <TabsContent value="clienti" className="mt-4">
-            <ContactTable contacts={clientiData} type="clienti" />
-            <div className="p-4 border-t">
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious href="#" />
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationLink href="#" isActive>1</PaginationLink>
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationLink href="#">2</PaginationLink>
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationLink href="#">3</PaginationLink>
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationNext href="#" />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            </div>
+            <ContactTable contacts={paginatedData} type="clienti" />
+            {totalPages > 1 && (
+              <div className="p-4 border-t">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({length: totalPages}, (_, i) => i + 1).map(page => (
+                      <PaginationItem key={page}>
+                        <PaginationLink 
+                          onClick={() => handlePageChange(page)}
+                          isActive={currentPage === page}
+                          className="cursor-pointer"
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
           </TabsContent>
           
           <TabsContent value="fornitori" className="mt-4">
-            <ContactTable contacts={fornitoriData} type="fornitori" />
+            <ContactTable contacts={paginatedData} type="fornitori" />
+            {totalPages > 1 && (
+              <div className="p-4 border-t">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({length: totalPages}, (_, i) => i + 1).map(page => (
+                      <PaginationItem key={page}>
+                        <PaginationLink 
+                          onClick={() => handlePageChange(page)}
+                          isActive={currentPage === page}
+                          className="cursor-pointer"
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
           </TabsContent>
           
           <TabsContent value="partner" className="mt-4">
-            <ContactTable contacts={partnerData} type="partner" />
+            <ContactTable contacts={paginatedData} type="partner" />
+            {totalPages > 1 && (
+              <div className="p-4 border-t">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({length: totalPages}, (_, i) => i + 1).map(page => (
+                      <PaginationItem key={page}>
+                        <PaginationLink 
+                          onClick={() => handlePageChange(page)}
+                          isActive={currentPage === page}
+                          className="cursor-pointer"
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
