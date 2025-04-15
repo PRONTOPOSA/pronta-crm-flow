@@ -1,16 +1,5 @@
-
 import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
 import { 
   Tabs, 
   TabsContent, 
@@ -26,89 +15,34 @@ import {
   PaginationNext, 
   PaginationPrevious 
 } from '@/components/ui/pagination';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  Phone, 
-  Mail, 
-  MapPin,
-  Building
-} from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogTrigger
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { toast } from '@/components/ui/use-toast';
+import { AddContactDialog } from '@/components/contacts/AddContactDialog';
+import { ContactFilters } from '@/components/contacts/ContactFilters';
+import { ContactTable } from '@/components/contacts/ContactTable';
 
-// Mock data
-const clientiData = [
-  { id: '1', nome: 'Marco Rossi', tipo: 'privato', email: 'marco.rossi@email.it', telefono: '333 1234567', citta: 'Milano', stato: 'attivo' },
-  { id: '2', nome: 'Laura Bianchi', tipo: 'privato', email: 'laura.b@email.it', telefono: '339 9876543', citta: 'Roma', stato: 'attivo' },
-  { id: '3', nome: 'Giuseppe Verdi', tipo: 'privato', email: 'g.verdi@email.it', telefono: '345 1122334', citta: 'Napoli', stato: 'inattivo' },
-  { id: '4', nome: 'Francesca Neri', tipo: 'privato', email: 'franc.neri@email.it', telefono: '347 5566778', citta: 'Torino', stato: 'attivo' },
-  { id: '5', nome: 'Antonio Russo', tipo: 'privato', email: 'a.russo@email.it', telefono: '349 8877665', citta: 'Bologna', stato: 'attivo' },
-];
-
-const fornitoriData = [
-  { id: '1', nome: 'Serramenti Moderni SRL', tipo: 'fornitore', email: 'info@serramentimoderni.it', telefono: '02 123456', citta: 'Milano', stato: 'attivo' },
-  { id: '2', nome: 'Infissi Premium SpA', tipo: 'fornitore', email: 'info@infissipremium.it', telefono: '06 654321', citta: 'Roma', stato: 'attivo' },
-  { id: '3', nome: 'Porte & Finestre di Qualità', tipo: 'fornitore', email: 'info@portefinestre.it', telefono: '081 112233', citta: 'Napoli', stato: 'inattivo' },
-];
-
-const partnerData = [
-  { id: '1', nome: 'Costruzioni Veloci SRL', tipo: 'partner', email: 'info@costruzioniveloci.it', telefono: '02 987654', citta: 'Milano', stato: 'attivo' },
-  { id: '2', nome: 'Progetti Edilizi SpA', tipo: 'partner', email: 'info@progettiedilizi.it', telefono: '06 456789', citta: 'Roma', stato: 'attivo' },
-];
+const { clientiData, fornitoriData, partnerData } = {
+  clientiData: [
+    { id: '1', nome: 'Marco Rossi', tipo: 'privato', email: 'marco.rossi@email.it', telefono: '333 1234567', citta: 'Milano', stato: 'attivo' },
+    { id: '2', nome: 'Laura Bianchi', tipo: 'privato', email: 'laura.b@email.it', telefono: '339 9876543', citta: 'Roma', stato: 'attivo' },
+    { id: '3', nome: 'Giuseppe Verdi', tipo: 'privato', email: 'g.verdi@email.it', telefono: '345 1122334', citta: 'Napoli', stato: 'inattivo' },
+    { id: '4', nome: 'Francesca Neri', tipo: 'privato', email: 'franc.neri@email.it', telefono: '347 5566778', citta: 'Torino', stato: 'attivo' },
+    { id: '5', nome: 'Antonio Russo', tipo: 'privato', email: 'a.russo@email.it', telefono: '349 8877665', citta: 'Bologna', stato: 'attivo' },
+  ],
+  fornitoriData: [
+    { id: '1', nome: 'Serramenti Moderni SRL', tipo: 'fornitore', email: 'info@serramentimoderni.it', telefono: '02 123456', citta: 'Milano', stato: 'attivo' },
+    { id: '2', nome: 'Infissi Premium SpA', tipo: 'fornitore', email: 'info@infissipremium.it', telefono: '06 654321', citta: 'Roma', stato: 'attivo' },
+    { id: '3', nome: 'Porte & Finestre di Qualità', tipo: 'fornitore', email: 'info@portefinestre.it', telefono: '081 112233', citta: 'Napoli', stato: 'inattivo' },
+  ],
+  partnerData: [
+    { id: '1', nome: 'Costruzioni Veloci SRL', tipo: 'partner', email: 'info@costruzioniveloci.it', telefono: '02 987654', citta: 'Milano', stato: 'attivo' },
+    { id: '2', nome: 'Progetti Edilizi SpA', tipo: 'partner', email: 'info@progettiedilizi.it', telefono: '06 456789', citta: 'Roma', stato: 'attivo' },
+  ]
+};
 
 const Contatti = () => {
   const [activeTab, setActiveTab] = useState('clienti');
-  const [newContact, setNewContact] = useState({
-    nome: '',
-    email: '',
-    telefono: '',
-    citta: '',
-    tipo: activeTab === 'clienti' ? 'privato' : activeTab === 'fornitori' ? 'fornitore' : 'partner'
-  });
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    setNewContact(prev => ({
-      ...prev,
-      tipo: value === 'clienti' ? 'privato' : value === 'fornitori' ? 'fornitore' : 'partner'
-    }));
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setNewContact(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleAddContact = () => {
-    // This would typically connect to a backend API
-    // For now, we'll just show a success message
-    toast({
-      title: "Contatto aggiunto",
-      description: `${newContact.nome} è stato aggiunto con successo.`,
-    });
-    
-    // Reset form
-    setNewContact({
-      nome: '',
-      email: '',
-      telefono: '',
-      citta: '',
-      tipo: activeTab === 'clienti' ? 'privato' : activeTab === 'fornitori' ? 'fornitore' : 'partner'
-    });
   };
 
   return (
@@ -120,81 +54,10 @@ const Contatti = () => {
             <p className="text-gray-500">Gestisci clienti, fornitori e partner</p>
           </div>
           
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button className="bg-secondary hover:bg-secondary/90">
-                <Plus className="h-4 w-4 mr-2" />
-                Nuovo Contatto
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>
-                  {activeTab === 'clienti' ? 'Nuovo Cliente' : 
-                   activeTab === 'fornitori' ? 'Nuovo Fornitore' : 'Nuovo Partner'}
-                </DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="nome">Nome {activeTab !== 'clienti' && 'Azienda'}</Label>
-                  <Input 
-                    id="nome" 
-                    name="nome" 
-                    value={newContact.nome} 
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input 
-                    id="email" 
-                    name="email" 
-                    type="email" 
-                    value={newContact.email} 
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="telefono">Telefono</Label>
-                  <Input 
-                    id="telefono" 
-                    name="telefono" 
-                    value={newContact.telefono} 
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="citta">Città</Label>
-                  <Input 
-                    id="citta" 
-                    name="citta" 
-                    value={newContact.citta} 
-                    onChange={handleInputChange}
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button onClick={handleAddContact}>Aggiungi</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <AddContactDialog contactType={activeTab as 'clienti' | 'fornitori' | 'partner'} />
         </div>
         
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-            <Input 
-              type="text" 
-              placeholder="Cerca per nome, email, telefono..." 
-              className="pl-10 w-full"
-            />
-          </div>
-          
-          <Button variant="outline" className="flex items-center">
-            <Filter className="h-4 w-4 mr-2" />
-            Filtri
-          </Button>
-        </div>
+        <ContactFilters />
         
         <Tabs defaultValue="clienti" onValueChange={handleTabChange}>
           <TabsList className="grid w-full grid-cols-3">
@@ -204,172 +67,39 @@ const Contatti = () => {
           </TabsList>
           
           <TabsContent value="clienti" className="mt-4">
-            <div className="bg-white rounded-md shadow">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Telefono</TableHead>
-                      <TableHead>Città</TableHead>
-                      <TableHead>Stato</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {clientiData.map((cliente) => (
-                      <TableRow key={cliente.id} className="hover:bg-gray-50 cursor-pointer">
-                        <TableCell className="font-medium">{cliente.nome}</TableCell>
-                        <TableCell className="flex items-center">
-                          <Mail className="h-4 w-4 mr-2 text-gray-500" />
-                          {cliente.email}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <Phone className="h-4 w-4 mr-2 text-gray-500" />
-                            {cliente.telefono}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <MapPin className="h-4 w-4 mr-2 text-gray-500" />
-                            {cliente.citta}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={cliente.stato === 'attivo' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
-                            {cliente.stato === 'attivo' ? 'Attivo' : 'Inattivo'}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-              
-              <div className="p-4 border-t">
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious href="#" />
-                    </PaginationItem>
-                    <PaginationItem>
-                      <PaginationLink href="#" isActive>1</PaginationLink>
-                    </PaginationItem>
-                    <PaginationItem>
-                      <PaginationLink href="#">2</PaginationLink>
-                    </PaginationItem>
-                    <PaginationItem>
-                      <PaginationLink href="#">3</PaginationLink>
-                    </PaginationItem>
-                    <PaginationItem>
-                      <PaginationEllipsis />
-                    </PaginationItem>
-                    <PaginationItem>
-                      <PaginationNext href="#" />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
-              </div>
+            <ContactTable contacts={clientiData} type="clienti" />
+            <div className="p-4 border-t">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious href="#" />
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationLink href="#" isActive>1</PaginationLink>
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationLink href="#">2</PaginationLink>
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationLink href="#">3</PaginationLink>
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationNext href="#" />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
             </div>
           </TabsContent>
           
           <TabsContent value="fornitori" className="mt-4">
-            <div className="bg-white rounded-md shadow">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Telefono</TableHead>
-                      <TableHead>Città</TableHead>
-                      <TableHead>Stato</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {fornitoriData.map((fornitore) => (
-                      <TableRow key={fornitore.id} className="hover:bg-gray-50 cursor-pointer">
-                        <TableCell className="font-medium flex items-center">
-                          <Building className="h-4 w-4 mr-2 text-gray-500" />
-                          {fornitore.nome}
-                        </TableCell>
-                        <TableCell className="flex items-center">
-                          <Mail className="h-4 w-4 mr-2 text-gray-500" />
-                          {fornitore.email}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <Phone className="h-4 w-4 mr-2 text-gray-500" />
-                            {fornitore.telefono}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <MapPin className="h-4 w-4 mr-2 text-gray-500" />
-                            {fornitore.citta}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={fornitore.stato === 'attivo' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
-                            {fornitore.stato === 'attivo' ? 'Attivo' : 'Inattivo'}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
+            <ContactTable contacts={fornitoriData} type="fornitori" />
           </TabsContent>
           
           <TabsContent value="partner" className="mt-4">
-            <div className="bg-white rounded-md shadow">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Telefono</TableHead>
-                      <TableHead>Città</TableHead>
-                      <TableHead>Stato</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {partnerData.map((partner) => (
-                      <TableRow key={partner.id} className="hover:bg-gray-50 cursor-pointer">
-                        <TableCell className="font-medium flex items-center">
-                          <Building className="h-4 w-4 mr-2 text-gray-500" />
-                          {partner.nome}
-                        </TableCell>
-                        <TableCell className="flex items-center">
-                          <Mail className="h-4 w-4 mr-2 text-gray-500" />
-                          {partner.email}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <Phone className="h-4 w-4 mr-2 text-gray-500" />
-                            {partner.telefono}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <MapPin className="h-4 w-4 mr-2 text-gray-500" />
-                            {partner.citta}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={partner.stato === 'attivo' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
-                            {partner.stato === 'attivo' ? 'Attivo' : 'Inattivo'}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
+            <ContactTable contacts={partnerData} type="partner" />
           </TabsContent>
         </Tabs>
       </div>
