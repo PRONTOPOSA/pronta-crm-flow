@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -18,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Facebook, Instagram, Users, Megaphone, Gift } from 'lucide-react';
+import { Plus, Facebook, Instagram, Users, Megaphone, Gift, Link, MapPin, Calendar } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 type ContactFormData = {
@@ -28,6 +29,12 @@ type ContactFormData = {
   citta: string;
   tipo: string;
   fonte: string;
+  indirizzo: string;
+  cap: string;
+  provincia: string;
+  website: string;
+  dataContatto: string;
+  note: string;
 };
 
 interface AddContactDialogProps {
@@ -41,7 +48,13 @@ export const AddContactDialog = ({ contactType }: AddContactDialogProps) => {
     telefono: '',
     citta: '',
     tipo: contactType === 'clienti' ? 'privato' : contactType === 'fornitori' ? 'fornitore' : 'partner',
-    fonte: ''
+    fonte: '',
+    indirizzo: '',
+    cap: '',
+    provincia: '',
+    website: '',
+    dataContatto: '',
+    note: ''
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,7 +84,13 @@ export const AddContactDialog = ({ contactType }: AddContactDialogProps) => {
       telefono: '',
       citta: '',
       tipo: contactType === 'clienti' ? 'privato' : contactType === 'fornitori' ? 'fornitore' : 'partner',
-      fonte: ''
+      fonte: '',
+      indirizzo: '',
+      cap: '',
+      provincia: '',
+      website: '',
+      dataContatto: '',
+      note: ''
     });
   };
 
@@ -100,7 +119,7 @@ export const AddContactDialog = ({ contactType }: AddContactDialogProps) => {
           Nuovo Contatto
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[625px]">
         <DialogHeader>
           <DialogTitle>
             {contactType === 'clienti' ? 'Nuovo Cliente' : 
@@ -108,43 +127,104 @@ export const AddContactDialog = ({ contactType }: AddContactDialogProps) => {
           </DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="nome">{contactType !== 'clienti' ? 'Nome Azienda' : 'Nome'}</Label>
-            <Input 
-              id="nome" 
-              name="nome" 
-              value={newContact.nome} 
-              onChange={handleInputChange}
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="nome">{contactType !== 'clienti' ? 'Nome Azienda' : 'Nome'}</Label>
+              <Input 
+                id="nome" 
+                name="nome" 
+                value={newContact.nome} 
+                onChange={handleInputChange}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input 
+                id="email" 
+                name="email" 
+                type="email" 
+                value={newContact.email} 
+                onChange={handleInputChange}
+              />
+            </div>
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input 
-              id="email" 
-              name="email" 
-              type="email" 
-              value={newContact.email} 
-              onChange={handleInputChange}
-            />
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="telefono">Telefono</Label>
+              <Input 
+                id="telefono" 
+                name="telefono" 
+                value={newContact.telefono} 
+                onChange={handleInputChange}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="website">Sito Web</Label>
+              <Input 
+                id="website" 
+                name="website" 
+                value={newContact.website} 
+                onChange={handleInputChange}
+                placeholder="www.esempio.com"
+              />
+            </div>
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="telefono">Telefono</Label>
-            <Input 
-              id="telefono" 
-              name="telefono" 
-              value={newContact.telefono} 
-              onChange={handleInputChange}
-            />
+
+          <div className="grid grid-cols-3 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="indirizzo">Indirizzo</Label>
+              <Input 
+                id="indirizzo" 
+                name="indirizzo" 
+                value={newContact.indirizzo} 
+                onChange={handleInputChange}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="citta">Città</Label>
+              <Input 
+                id="citta" 
+                name="citta" 
+                value={newContact.citta} 
+                onChange={handleInputChange}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="provincia">Provincia</Label>
+              <Input 
+                id="provincia" 
+                name="provincia" 
+                value={newContact.provincia} 
+                onChange={handleInputChange}
+                maxLength={2}
+              />
+            </div>
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="citta">Città</Label>
-            <Input 
-              id="citta" 
-              name="citta" 
-              value={newContact.citta} 
-              onChange={handleInputChange}
-            />
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="cap">CAP</Label>
+              <Input 
+                id="cap" 
+                name="cap" 
+                value={newContact.cap} 
+                onChange={handleInputChange}
+                maxLength={5}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="dataContatto">Data Contatto</Label>
+              <Input 
+                id="dataContatto" 
+                name="dataContatto" 
+                type="date"
+                value={newContact.dataContatto} 
+                onChange={handleInputChange}
+              />
+            </div>
           </div>
+
           <div className="grid gap-2">
             <Label htmlFor="fonte">Fonte</Label>
             <Select onValueChange={handleSourceChange} value={newContact.fonte}>
@@ -184,6 +264,18 @@ export const AddContactDialog = ({ contactType }: AddContactDialogProps) => {
                 </SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="note">Note</Label>
+            <Textarea 
+              id="note" 
+              name="note" 
+              value={newContact.note} 
+              onChange={handleInputChange}
+              placeholder="Inserisci eventuali note o commenti..."
+              className="min-h-[100px]"
+            />
           </div>
         </div>
         <DialogFooter>
