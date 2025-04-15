@@ -32,21 +32,49 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
   const currentDate = new Date().toISOString().split('T')[0];
   const currentTime = new Date().toTimeString().slice(0, 5);
 
+  // Generate datetime string from date and time
+  const handleDateTimeChange = (fieldName: string, value: string, timeOrDate: 'time' | 'date') => {
+    // Get the current date/time values
+    const currentValues = appointment[fieldName as keyof AppointmentFormData] as string || '';
+    const [datePart, timePart] = currentValues.split('T');
+    
+    // Update either time or date part
+    let newDateTime: string;
+    if (timeOrDate === 'date') {
+      const time = timePart || `${currentTime}:00`;
+      newDateTime = `${value}T${time}`;
+    } else {
+      const date = datePart || currentDate;
+      newDateTime = `${date}T${value}:00`;
+    }
+    
+    // Create a synthetic event
+    const syntheticEvent = {
+      target: {
+        name: fieldName,
+        value: newDateTime
+      }
+    } as React.ChangeEvent<HTMLInputElement>;
+    
+    onInputChange(syntheticEvent);
+  };
+
   return (
     <div className="grid gap-4 py-4">
       <div className="grid grid-cols-1 gap-2">
-        <Label htmlFor="title">Titolo Appuntamento</Label>
+        <Label htmlFor="title">Titolo Appuntamento *</Label>
         <Input 
           id="title" 
           name="title" 
           value={appointment.title} 
           onChange={onInputChange}
           placeholder="Es. Sopralluogo per infissi"
+          required
         />
       </div>
       
       <div className="grid grid-cols-1 gap-2">
-        <Label htmlFor="client">Cliente</Label>
+        <Label htmlFor="client">Cliente *</Label>
         <ClientSelect
           value={appointment.client}
           onChange={onClientChange}
@@ -70,7 +98,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
       
       <div className="grid grid-cols-2 gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="datetime">Data e Ora Inizio</Label>
+          <Label htmlFor="datetime">Data e Ora Inizio *</Label>
           <div className="flex gap-2">
             <Input 
               id="date" 
@@ -78,30 +106,16 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
               type="date"
               min={currentDate}
               value={appointment.datetime.split('T')[0] || currentDate}
-              onChange={(e) => {
-                const time = appointment.datetime.split('T')[1] || `${currentTime}:00`;
-                onInputChange({
-                  target: {
-                    name: 'datetime',
-                    value: `${e.target.value}T${time}`
-                  }
-                } as React.ChangeEvent<HTMLInputElement>);
-              }}
+              onChange={(e) => handleDateTimeChange('datetime', e.target.value, 'date')}
+              required
             />
             <Input 
               id="time" 
               name="time" 
               type="time"
               value={appointment.datetime.split('T')[1]?.substring(0, 5) || currentTime}
-              onChange={(e) => {
-                const date = appointment.datetime.split('T')[0] || currentDate;
-                onInputChange({
-                  target: {
-                    name: 'datetime',
-                    value: `${date}T${e.target.value}:00`
-                  }
-                } as React.ChangeEvent<HTMLInputElement>);
-              }}
+              onChange={(e) => handleDateTimeChange('datetime', e.target.value, 'time')}
+              required
             />
           </div>
         </div>
@@ -115,30 +129,14 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
               type="date"
               min={appointment.datetime.split('T')[0] || currentDate}
               value={appointment.endtime.split('T')[0] || appointment.datetime.split('T')[0] || currentDate}
-              onChange={(e) => {
-                const time = appointment.endtime.split('T')[1] || `${currentTime}:00`;
-                onInputChange({
-                  target: {
-                    name: 'endtime',
-                    value: `${e.target.value}T${time}`
-                  }
-                } as React.ChangeEvent<HTMLInputElement>);
-              }}
+              onChange={(e) => handleDateTimeChange('endtime', e.target.value, 'date')}
             />
             <Input 
               id="endTime" 
               name="endTime" 
               type="time"
               value={appointment.endtime.split('T')[1]?.substring(0, 5) || currentTime}
-              onChange={(e) => {
-                const date = appointment.endtime.split('T')[0] || appointment.datetime.split('T')[0] || currentDate;
-                onInputChange({
-                  target: {
-                    name: 'endtime',
-                    value: `${date}T${e.target.value}:00`
-                  }
-                } as React.ChangeEvent<HTMLInputElement>);
-              }}
+              onChange={(e) => handleDateTimeChange('endtime', e.target.value, 'time')}
             />
           </div>
         </div>
@@ -187,6 +185,10 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
           placeholder="Inserisci eventuali note..."
           className="min-h-[100px]"
         />
+      </div>
+      
+      <div className="text-sm text-muted-foreground">
+        I campi con * sono obbligatori
       </div>
     </div>
   );

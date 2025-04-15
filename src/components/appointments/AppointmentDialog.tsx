@@ -66,21 +66,52 @@ export const AppointmentDialog = ({ onAddAppointment }: AppointmentDialogProps) 
   };
 
   const handleAddAppointment = () => {
-    if (!newAppointment.title || !newAppointment.client || !newAppointment.datetime) {
+    // Log the current state for debugging
+    console.log("Attempting to add appointment:", newAppointment);
+    
+    // Only check for required fields: title, client, and datetime
+    if (!newAppointment.title.trim()) {
       toast({
-        title: "Errore",
-        description: "Titolo, cliente e data/ora sono campi obbligatori.",
+        title: "Campo obbligatorio mancante",
+        description: "Il titolo dell'appuntamento è obbligatorio.",
         variant: "destructive"
       });
       return;
     }
     
+    if (!newAppointment.client.trim()) {
+      toast({
+        title: "Campo obbligatorio mancante",
+        description: "Il nome del cliente è obbligatorio.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (!newAppointment.datetime) {
+      toast({
+        title: "Campo obbligatorio mancante",
+        description: "La data e l'ora dell'appuntamento sono obbligatorie.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // If we reach here, all required fields are filled
     toast({
       title: "Appuntamento aggiunto",
       description: `${newAppointment.title} è stato aggiunto con successo.`,
     });
     
     if (onAddAppointment) {
+      // Make sure endtime is set if not provided
+      if (!newAppointment.endtime && newAppointment.datetime) {
+        // Default to 1 hour after start time
+        const startDate = new Date(newAppointment.datetime);
+        startDate.setHours(startDate.getHours() + 1);
+        newAppointment.endtime = startDate.toISOString();
+      }
+      
       onAddAppointment(newAppointment);
     }
     
