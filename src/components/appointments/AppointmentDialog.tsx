@@ -24,6 +24,7 @@ import {
 import { Plus, CalendarClock } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import VenditoreSelect from '@/components/dashboard/VenditoreSelect';
+import ClientSelect from './ClientSelect';
 
 export interface AppointmentFormData {
   id: string;
@@ -77,6 +78,13 @@ export const AppointmentDialog = ({ onAddAppointment }: AppointmentDialogProps) 
     setNewAppointment(prev => ({
       ...prev,
       venditoreId
+    }));
+  };
+
+  const handleClientChange = (clientName: string) => {
+    setNewAppointment(prev => ({
+      ...prev,
+      client: clientName
     }));
   };
 
@@ -148,32 +156,27 @@ export const AppointmentDialog = ({ onAddAppointment }: AppointmentDialogProps) 
             />
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="client">Cliente</Label>
-              <Input 
-                id="client" 
-                name="client" 
-                value={newAppointment.client} 
-                onChange={handleInputChange}
-                placeholder="Nome del cliente"
-              />
-            </div>
+          <div className="grid grid-cols-1 gap-2">
+            <Label htmlFor="client">Cliente</Label>
+            <ClientSelect
+              value={newAppointment.client}
+              onChange={handleClientChange}
+            />
+          </div>
             
-            <div className="grid gap-2">
-              <Label htmlFor="type">Tipo Appuntamento</Label>
-              <Select value={newAppointment.type} onValueChange={handleTypeChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleziona tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="sopralluogo">Sopralluogo</SelectItem>
-                  <SelectItem value="installazione">Installazione</SelectItem>
-                  <SelectItem value="riunione">Riunione</SelectItem>
-                  <SelectItem value="consegna">Consegna</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="grid grid-cols-1 gap-2">
+            <Label htmlFor="type">Tipo Appuntamento</Label>
+            <Select value={newAppointment.type} onValueChange={handleTypeChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleziona tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="sopralluogo">Sopralluogo</SelectItem>
+                <SelectItem value="installazione">Installazione</SelectItem>
+                <SelectItem value="riunione">Riunione</SelectItem>
+                <SelectItem value="consegna">Consegna</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           
           <div className="grid grid-cols-2 gap-4">
