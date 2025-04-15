@@ -9,7 +9,8 @@ import {
   FileText,
   Settings,
   LogOut,
-  Mail
+  Mail,
+  UserCircle
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -25,6 +26,7 @@ const Sidebar = () => {
           <SidebarItem to="/contatti" icon={<Users size={20} />} label="Contatti" />
           <SidebarItem to="/appuntamenti" icon={<Calendar size={20} />} label="Calendario" />
           <SidebarItem to="/progetti" icon={<FileText size={20} />} label="Progetti" />
+          <SidebarItem to="/venditori" icon={<UserCircle size={20} />} label="Venditori" />
           <SidebarItem to="/comunicazioni" icon={<Mail size={20} />} label="Comunicazioni" />
           <SidebarItem to="/reportistica" icon={<PieChart size={20} />} label="Reportistica" />
         </ul>

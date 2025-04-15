@@ -1,178 +1,197 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Calendar, ArrowDownRight, ArrowUpRight, DollarSign, Users, Package } from 'lucide-react';
 import StatCard from '@/components/dashboard/StatCard';
 import ProjectTable from '@/components/dashboard/ProjectTable';
 import AppointmentList from '@/components/dashboard/AppointmentList';
-import { 
-  FileText, 
-  CalendarCheck, 
-  Euro, 
-  Users,
-  BarChart3,
-  ArrowUpRight
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
-// Mock data
-const stats = [
-  { 
-    title: 'Preventivi Aperti', 
-    value: '12', 
-    icon: <FileText size={20} />,
-    change: { value: 8, type: 'increase' as const } 
-  },
-  { 
-    title: 'Appuntamenti Oggi', 
-    value: '5', 
-    icon: <CalendarCheck size={20} />,
-    change: { value: 2, type: 'increase' as const } 
-  },
-  { 
-    title: 'Fatturato Mensile', 
-    value: '€ 24.500', 
-    icon: <Euro size={20} />,
-    change: { value: 12, type: 'increase' as const } 
-  },
-  { 
-    title: 'Nuovi Clienti', 
-    value: '8', 
-    icon: <Users size={20} />,
-    change: { value: 5, type: 'decrease' as const } 
-  },
-];
-
-const projects = [
-  { id: '1', client: 'Marco Rossi', description: 'Sostituzione finestre appartamento', status: 'preventivo' as const, deadline: '25/04/2025' },
-  { id: '2', client: 'Francesca Neri', description: 'Porte blindate e serramenti', status: 'approvato' as const, deadline: '18/04/2025' },
-  { id: '3', client: 'Costruzioni Veloci SRL', description: 'Fornitura e posa serramenti edificio', status: 'in-corso' as const, deadline: '30/04/2025' },
-  { id: '4', client: 'Maria Ferrari', description: 'Sostituzione portoncino ingresso', status: 'completato' as const, deadline: '01/04/2025' },
-  { id: '5', client: 'Laura Bianchi', description: 'Installazione porte interne', status: 'preventivo' as const, deadline: '23/04/2025' },
-];
-
+// Mock data for appointments
 const appointments = [
   { 
     id: '1', 
     title: 'Sopralluogo per infissi', 
     client: 'Marco Rossi',
+    type: 'sopralluogo',
     datetime: '2025-04-15T10:00:00',
+    endtime: '2025-04-15T11:30:00',
     location: 'Via Roma 123, Milano',
-    type: 'sopralluogo' as const
+    venditore_id: '1',
+    venditore_nome: 'Mario Bianchi'
   },
   { 
     id: '2', 
     title: 'Installazione finestre', 
     client: 'Laura Bianchi',
+    type: 'installazione',
     datetime: '2025-04-15T14:00:00',
+    endtime: '2025-04-15T18:00:00',
     location: 'Via Verdi 45, Roma',
-    type: 'installazione' as const
+    venditore_id: '2',
+    venditore_nome: 'Lucia Verdi'
   },
   { 
     id: '3', 
     title: 'Riunione con Costruzioni Veloci', 
     client: 'Costruzioni Veloci SRL',
+    type: 'riunione',
     datetime: '2025-04-16T09:30:00',
+    endtime: '2025-04-16T10:30:00',
     location: 'Sede aziendale',
-    type: 'riunione' as const
+    venditore_id: '1',
+    venditore_nome: 'Mario Bianchi'
+  },
+  { 
+    id: '4', 
+    title: 'Sopralluogo appartamento', 
+    client: 'Giuseppe Verdi',
+    type: 'sopralluogo',
+    datetime: '2025-04-17T11:00:00',
+    endtime: '2025-04-17T12:30:00',
+    location: 'Via Napoli 67, Bologna',
+    venditore_id: '2',
+    venditore_nome: 'Lucia Verdi'
+  },
+  { 
+    id: '5', 
+    title: 'Consegna materiale', 
+    client: 'Progetti Edilizi SpA',
+    type: 'consegna',
+    datetime: '2025-04-17T15:00:00',
+    endtime: '2025-04-17T16:00:00',
+    location: 'Cantiere Via Torino 89, Milano',
+    venditore_id: '1',
+    venditore_nome: 'Mario Bianchi'
   },
 ];
 
+// Mock data for monthly stats
+const monthlyStats = [
+  {
+    title: "Fatturato Mensile",
+    value: "€32,450",
+    icon: <DollarSign />,
+    change: "+15%",
+    trend: "positive"
+  },
+  {
+    title: "Nuovi Clienti",
+    value: "24",
+    icon: <Users />,
+    change: "+12%",
+    trend: "positive"
+  },
+  {
+    title: "Progetti Completati",
+    value: "16",
+    icon: <Package />,
+    change: "-3%",
+    trend: "negative"
+  },
+  {
+    title: "Preventivi Approvati",
+    value: "28",
+    icon: <ArrowUpRight />,
+    change: "+8%",
+    trend: "positive"
+  }
+];
+
 const Dashboard = () => {
+  const [selectedVenditoreId, setSelectedVenditoreId] = useState<string | undefined>(undefined);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isVenditore, setIsVenditore] = useState(false);
+  const [venditoreDetails, setVenditoreDetails] = useState<any>(null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setCurrentUser(session.user);
+        
+        // Check if user is a venditore
+        const { data, error } = await supabase
+          .from('venditori')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .single();
+        
+        if (data && !error) {
+          setIsVenditore(true);
+          setVenditoreDetails(data);
+          setSelectedVenditoreId(data.id);
+        }
+      }
+    };
+    
+    fetchCurrentUser();
+  }, []);
+
+  // Filter appointments based on selected venditore
+  const filteredAppointments = selectedVenditoreId 
+    ? appointments.filter(app => app.venditore_id === selectedVenditoreId)
+    : appointments;
+
   return (
     <MainLayout>
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-gray-500">Panoramica delle attività e dei progetti</p>
+          <p className="text-gray-500">Benvenuto nel pannello di controllo di ProntoPosa</p>
+          {isVenditore && venditoreDetails && (
+            <p className="mt-1 text-sm bg-blue-50 p-2 rounded border border-blue-100 inline-block">
+              Accesso venditore: {venditoreDetails.nome} {venditoreDetails.cognome}
+            </p>
+          )}
         </div>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {stats.map((stat, index) => (
+          {monthlyStats.map((stat, index) => (
             <StatCard 
               key={index}
               title={stat.title}
               value={stat.value}
               icon={stat.icon}
               change={stat.change}
+              trend={stat.trend as 'positive' | 'negative'}
             />
           ))}
         </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-md font-medium">Progetti recenti</CardTitle>
-                <Button variant="ghost" size="sm" className="text-xs gap-1">
-                  Vedi tutti
-                  <ArrowUpRight className="h-3 w-3" />
-                </Button>
-              </CardHeader>
-              <CardContent className="pb-4">
-                <ProjectTable projects={projects} />
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-md font-medium">Statistiche vendite</CardTitle>
-                <Button variant="ghost" size="sm" className="text-xs gap-1">
-                  Report completo
-                  <ArrowUpRight className="h-3 w-3" />
-                </Button>
-              </CardHeader>
-              <CardContent className="pb-4">
-                <div className="h-[240px] flex items-center justify-center bg-gray-50 rounded-md border">
-                  <div className="text-center">
-                    <BarChart3 className="h-10 w-10 mx-auto text-gray-400" />
-                    <p className="mt-2 text-gray-500">Grafico statistiche vendite</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <AppointmentList 
+            appointments={filteredAppointments} 
+            showVenditoreFilter={!isVenditore} 
+            onVenditoreChange={!isVenditore ? setSelectedVenditoreId : undefined}
+            selectedVenditoreId={selectedVenditoreId}
+          />
           
-          <div className="space-y-6">
-            <AppointmentList appointments={appointments} />
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-md font-medium">Attività recenti</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="border-l-2 border-primary pl-4 pb-4 relative">
-                    <div className="absolute w-3 h-3 bg-primary rounded-full -left-[6.5px] top-1"></div>
-                    <p className="text-sm font-medium">Preventivo inviato</p>
-                    <p className="text-xs text-gray-500">Cliente: Antonio Russo</p>
-                    <p className="text-xs text-gray-500">Oggi, 11:30</p>
-                  </div>
-                  
-                  <div className="border-l-2 border-primary pl-4 pb-4 relative">
-                    <div className="absolute w-3 h-3 bg-primary rounded-full -left-[6.5px] top-1"></div>
-                    <p className="text-sm font-medium">Appuntamento completato</p>
-                    <p className="text-xs text-gray-500">Cliente: Laura Bianchi</p>
-                    <p className="text-xs text-gray-500">Oggi, 10:15</p>
-                  </div>
-                  
-                  <div className="border-l-2 border-primary pl-4 pb-4 relative">
-                    <div className="absolute w-3 h-3 bg-primary rounded-full -left-[6.5px] top-1"></div>
-                    <p className="text-sm font-medium">Progetto completato</p>
-                    <p className="text-xs text-gray-500">Cliente: Maria Ferrari</p>
-                    <p className="text-xs text-gray-500">Ieri, 16:45</p>
-                  </div>
-                  
-                  <div className="border-l-2 border-primary pl-4 relative">
-                    <div className="absolute w-3 h-3 bg-primary rounded-full -left-[6.5px] top-1"></div>
-                    <p className="text-sm font-medium">Nuovo cliente aggiunto</p>
-                    <p className="text-xs text-gray-500">Cliente: Roberto Esposito</p>
-                    <p className="text-xs text-gray-500">Ieri, 14:30</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <ProjectTable />
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Calendario Mensile</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex justify-center my-4">
+                <Calendar className="h-24 w-24 text-gray-400" />
+              </div>
+              <div className="text-center text-gray-500">
+                <p>Visualizza il calendario completo per gestire</p>
+                <p>tutti gli appuntamenti e gli eventi programmati.</p>
+                <Button variant="outline" className="mt-4">
+                  Vai al Calendario
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </MainLayout>
