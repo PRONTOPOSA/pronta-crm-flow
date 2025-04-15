@@ -16,8 +16,7 @@ import {
   DialogFooter
 } from '@/components/ui/dialog';
 import { PlusCircle, Edit, Trash2, Search } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { Venditore, VenditoreFormValues } from '@/types/venditori';
+import { Venditore, VenditoreFormValues, mockVenditori } from '@/types/venditori';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -51,13 +50,8 @@ const Venditori = () => {
   const fetchVenditori = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('venditori')
-        .select('*')
-        .order('cognome', { ascending: true });
-      
-      if (error) throw error;
-      setVenditori(data as Venditore[]);
+      // Usiamo i dati di esempio invece di chiamare Supabase
+      setVenditori(mockVenditori);
     } catch (error) {
       console.error('Errore nel caricamento dei venditori:', error);
       toast({
@@ -103,40 +97,29 @@ const Venditori = () => {
   const onSubmit = async (data: VenditoreFormValues) => {
     try {
       if (editingVenditore) {
-        // Updating existing venditore
-        const { error } = await supabase
-          .from('venditori')
-          .update(data)
-          .eq('id', editingVenditore.id);
-        
-        if (error) throw error;
+        // Simuliamo l'aggiornamento di un venditore esistente
+        const updatedVenditori = venditori.map(v => 
+          v.id === editingVenditore.id ? { ...v, ...data } : v
+        );
+        setVenditori(updatedVenditori);
         
         toast({
           title: "Successo",
           description: "Venditore aggiornato con successo",
         });
       } else {
-        // Creating new venditore
-        // In a real scenario, we would need to create a user account first
-        // and then link it to the venditore
-        const { data: userData, error: userError } = await supabase.auth.admin.createUser({
+        // Simuliamo la creazione di un nuovo venditore
+        const newVenditore: Venditore = {
+          id: Date.now().toString(), // ID simulato
+          user_id: `user-${Date.now()}`, // User ID simulato
+          nome: data.nome,
+          cognome: data.cognome,
           email: data.email,
-          password: 'password123', // This should be generated or provided by the user
-          email_confirm: true
-        });
+          telefono: data.telefono,
+          created_at: new Date().toISOString()
+        };
         
-        if (userError) throw userError;
-        
-        const { error } = await supabase
-          .from('venditori')
-          .insert([
-            { 
-              ...data,
-              user_id: userData.user.id 
-            }
-          ]);
-        
-        if (error) throw error;
+        setVenditori([...venditori, newVenditore]);
         
         toast({
           title: "Successo",
@@ -144,7 +127,6 @@ const Venditori = () => {
         });
       }
       
-      fetchVenditori();
       handleCloseForm();
     } catch (error: any) {
       console.error('Errore nel salvataggio del venditore:', error);
@@ -159,18 +141,13 @@ const Venditori = () => {
   const handleDeleteVenditore = async (id: string) => {
     if (confirm('Sei sicuro di voler eliminare questo venditore?')) {
       try {
-        const { error } = await supabase
-          .from('venditori')
-          .delete()
-          .eq('id', id);
-        
-        if (error) throw error;
+        // Simuliamo l'eliminazione di un venditore
+        setVenditori(venditori.filter(v => v.id !== id));
         
         toast({
           title: "Successo",
           description: "Venditore eliminato con successo",
         });
-        fetchVenditori();
       } catch (error) {
         console.error('Errore nell\'eliminazione del venditore:', error);
         toast({

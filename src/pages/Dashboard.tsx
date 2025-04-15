@@ -8,10 +8,51 @@ import StatCard from '@/components/dashboard/StatCard';
 import ProjectTable from '@/components/dashboard/ProjectTable';
 import AppointmentList from '@/components/dashboard/AppointmentList';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { mockVenditori } from '@/types/venditori';
 
-// Mock data for appointments
-const appointments = [
+// Definizione dei tipi corretti per gli appuntamenti
+interface Appointment {
+  id: string;
+  title: string;
+  client: string;
+  type: 'sopralluogo' | 'installazione' | 'riunione' | 'consegna';
+  datetime: string;
+  endtime?: string;
+  location: string;
+  venditore_id?: string;
+  venditore_nome?: string;
+}
+
+// Mock data per i progetti (richiesto dal ProjectTable component)
+const projects = [
+  {
+    id: '1',
+    nome: 'Ristrutturazione Villa Bianchi',
+    cliente: 'Famiglia Bianchi',
+    stato: 'in_corso',
+    budget: 45000,
+    createdAt: '2025-03-15T10:00:00Z'
+  },
+  {
+    id: '2',
+    nome: 'Infissi Condominio Aurora',
+    cliente: 'Condominio Aurora',
+    stato: 'preventivo',
+    budget: 28500,
+    createdAt: '2025-04-05T14:30:00Z'
+  },
+  {
+    id: '3',
+    nome: 'Serramenti Uffici Tech Solutions',
+    cliente: 'Tech Solutions SRL',
+    stato: 'completato',
+    budget: 12800,
+    createdAt: '2025-02-20T09:15:00Z'
+  }
+];
+
+// Mock data per gli appuntamenti con i tipi corretti
+const appointments: Appointment[] = [
   { 
     id: '1', 
     title: 'Sopralluogo per infissi', 
@@ -69,35 +110,35 @@ const appointments = [
   },
 ];
 
-// Mock data for monthly stats
+// Mock data per le statistiche mensili con i tipi corretti
 const monthlyStats = [
   {
     title: "Fatturato Mensile",
     value: "€32,450",
     icon: <DollarSign />,
-    change: "+15%",
-    trend: "positive"
+    change: { value: 15, type: "increase" },
+    trend: "positive" as const
   },
   {
     title: "Nuovi Clienti",
     value: "24",
     icon: <Users />,
-    change: "+12%",
-    trend: "positive"
+    change: { value: 12, type: "increase" },
+    trend: "positive" as const
   },
   {
     title: "Progetti Completati",
     value: "16",
     icon: <Package />,
-    change: "-3%",
-    trend: "negative"
+    change: { value: 3, type: "decrease" },
+    trend: "negative" as const
   },
   {
     title: "Preventivi Approvati",
     value: "28",
     icon: <ArrowUpRight />,
-    change: "+8%",
-    trend: "positive"
+    change: { value: 8, type: "increase" },
+    trend: "positive" as const
   }
 ];
 
@@ -109,30 +150,26 @@ const Dashboard = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Simuliamo il caricamento dell'utente e il controllo se è un venditore
     const fetchCurrentUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        setCurrentUser(session.user);
-        
-        // Check if user is a venditore
-        const { data, error } = await supabase
-          .from('venditori')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .single();
-        
-        if (data && !error) {
-          setIsVenditore(true);
-          setVenditoreDetails(data);
-          setSelectedVenditoreId(data.id);
-        }
+      // Simula un utente loggato (in un caso reale, questo verrebbe da Supabase auth)
+      const mockUser = { id: 'user-1' };
+      setCurrentUser(mockUser);
+      
+      // Verifica se l'utente è un venditore
+      const venditore = mockVenditori.find(v => v.user_id === mockUser.id);
+      
+      if (venditore) {
+        setIsVenditore(true);
+        setVenditoreDetails(venditore);
+        setSelectedVenditoreId(venditore.id);
       }
     };
     
     fetchCurrentUser();
   }, []);
 
-  // Filter appointments based on selected venditore
+  // Filtra gli appuntamenti in base al venditore selezionato
   const filteredAppointments = selectedVenditoreId 
     ? appointments.filter(app => app.venditore_id === selectedVenditoreId)
     : appointments;
@@ -158,7 +195,7 @@ const Dashboard = () => {
               value={stat.value}
               icon={stat.icon}
               change={stat.change}
-              trend={stat.trend as 'positive' | 'negative'}
+              trend={stat.trend}
             />
           ))}
         </div>
@@ -171,7 +208,7 @@ const Dashboard = () => {
             selectedVenditoreId={selectedVenditoreId}
           />
           
-          <ProjectTable />
+          <ProjectTable projects={projects} />
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">

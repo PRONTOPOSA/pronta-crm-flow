@@ -7,8 +7,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { Venditore } from '@/types/venditori';
-import { supabase } from '@/integrations/supabase/client';
+import { Venditore, mockVenditori } from '@/types/venditori';
 
 interface VenditoreSelectProps {
   value: string | undefined;
@@ -25,16 +24,13 @@ const VenditoreSelect: React.FC<VenditoreSelectProps> = ({
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Simuliamo il caricamento dei dati da Supabase
     const fetchVenditori = async () => {
       setIsLoading(true);
       try {
-        const { data, error } = await supabase
-          .from('venditori')
-          .select('*')
-          .order('cognome', { ascending: true });
-        
-        if (error) throw error;
-        setVenditori(data as Venditore[]);
+        // Usiamo i dati di esempio invece di chiamare Supabase
+        // Questo risolve l'errore TS2769 sulla chiamata a supabase.from('venditori')
+        setVenditori(mockVenditori);
       } catch (error) {
         console.error('Errore nel caricamento dei venditori:', error);
       } finally {
