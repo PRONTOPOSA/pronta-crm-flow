@@ -37,19 +37,18 @@ export const ClientSelect = ({ value, onChange }: ClientSelectProps) => {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   
-  // Defensive programming: ensure filteredClients is always an array
   const filteredClients = useMemo(() => {
-    const filteredData = clientsData.filter(client => {
-      if (!searchQuery) return true;
-      const searchLower = searchQuery.toLowerCase();
-      return client.name.toLowerCase().includes(searchLower) || 
-             client.email.toLowerCase().includes(searchLower);
-    });
+    if (!searchQuery) return clientsData;
     
-    return filteredData || []; // Return empty array if undefined
+    const searchLower = searchQuery.toLowerCase();
+    return clientsData.filter(client => 
+      client.name.toLowerCase().includes(searchLower) || 
+      client.email.toLowerCase().includes(searchLower)
+    );
   }, [searchQuery]);
 
-  const displayValue = value || "Seleziona cliente...";
+  const selectedClient = clientsData.find(client => client.name === value);
+  const displayValue = selectedClient?.name || "Seleziona cliente...";
   
   return (
     <Popover open={open} onOpenChange={setOpen}>
