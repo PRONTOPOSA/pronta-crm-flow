@@ -35,6 +35,7 @@ interface ClientSelectProps {
 
 export const ClientSelect = ({ value, onChange }: ClientSelectProps) => {
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
   
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -51,7 +52,11 @@ export const ClientSelect = ({ value, onChange }: ClientSelectProps) => {
       </PopoverTrigger>
       <PopoverContent className="w-full p-0" align="start">
         <Command>
-          <CommandInput placeholder="Cerca cliente..." />
+          <CommandInput 
+            placeholder="Cerca cliente..." 
+            value={search}
+            onValueChange={setSearch}
+          />
           <CommandEmpty>Nessun cliente trovato.</CommandEmpty>
           <CommandGroup className="max-h-64 overflow-y-auto">
             {clientsData.map((client) => (
