@@ -1,33 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Calendar as CalendarIcon, 
-  Users, 
-  MapPin, 
-  Clock, 
-  CheckCircle2,
-  UserCheck
-} from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { AppointmentDialog, AppointmentFormData } from '@/components/appointments/AppointmentDialog';
 import { toast } from '@/components/ui/use-toast';
-import { mockVenditori } from '@/types/venditori';
+import { AppointmentsCalendar } from '@/components/appointments/AppointmentsCalendar';
+import { AppointmentsList } from '@/components/appointments/AppointmentsList';
 
 // Initial mock data for appointments
 const initialAppointments = [
@@ -87,7 +65,7 @@ const initialAppointments = [
     location: 'Cantiere Via Torino 89, Milano',
     technician: 'Autista',
     notes: 'Consegna 5 portefinestre e accessori.'
-  },
+  }
 ] as AppointmentFormData[];
 
 const Appuntamenti = () => {
@@ -102,7 +80,6 @@ const Appuntamenti = () => {
     if (savedAppointments) {
       setAppointments(JSON.parse(savedAppointments));
     } else {
-      // Initialize with mock data if no saved appointments
       setAppointments(initialAppointments);
       localStorage.setItem('appointments', JSON.stringify(initialAppointments));
     }
@@ -115,10 +92,8 @@ const Appuntamenti = () => {
     }
   }, [appointments]);
   
-  // Add new appointment
   const handleAddAppointment = (newAppointment: AppointmentFormData) => {
     setAppointments(prev => [...prev, newAppointment]);
-    // Set the calendar date to the new appointment date
     setDate(new Date(newAppointment.datetime));
     toast({
       title: "Appuntamento creato",
@@ -126,7 +101,6 @@ const Appuntamenti = () => {
     });
   };
   
-  // Complete an appointment
   const handleCompleteAppointment = (id: string) => {
     setAppointments(prev => prev.filter(app => app.id !== id));
     setSelectedAppointment(null);
@@ -136,18 +110,6 @@ const Appuntamenti = () => {
     });
   };
   
-  // Update an appointment
-  const handleUpdateAppointment = (updatedAppointment: AppointmentFormData) => {
-    setAppointments(prev => 
-      prev.map(app => app.id === updatedAppointment.id ? updatedAppointment : app)
-    );
-    toast({
-      title: "Appuntamento aggiornato",
-      description: `L'appuntamento "${updatedAppointment.title}" è stato aggiornato.`
-    });
-  };
-  
-  // Get appointments for the selected date, filtered by type if needed
   const getFilteredAppointments = () => {
     if (!date) return [];
     
@@ -166,17 +128,6 @@ const Appuntamenti = () => {
       return new Date(a.datetime).getTime() - new Date(b.datetime).getTime();
     });
   };
-
-  // Find venditore name from ID
-  const getVenditoreName = (venditoreId: string | undefined) => {
-    if (!venditoreId) return null;
-    
-    const venditore = mockVenditori.find(v => v.id === venditoreId);
-    if (venditore) {
-      return `${venditore.nome} ${venditore.cognome}`;
-    }
-    return null;
-  };
   
   const todayAppointments = getFilteredAppointments();
   
@@ -194,143 +145,21 @@ const Appuntamenti = () => {
         
         <div className="flex flex-col md:flex-row gap-6">
           <div className="md:w-[380px]">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle>Calendario</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate}
-                  className="rounded-md border"
-                  initialFocus
-                />
-                
-                <div className="flex items-center justify-between mt-4">
-                  <div className="text-sm text-gray-500">
-                    <CalendarIcon className="h-4 w-4 inline-block mr-1" />
-                    {date ? (
-                      <span>{date.toLocaleDateString('it-IT', { 
-                        weekday: 'long', 
-                        day: 'numeric', 
-                        month: 'long', 
-                        year: 'numeric' 
-                      })}</span>
-                    ) : (
-                      <span>Seleziona una data</span>
-                    )}
-                  </div>
-                  
-                  <Select value={typeFilter} onValueChange={setTypeFilter}>
-                    <SelectTrigger className="w-[140px]">
-                      <SelectValue placeholder="Filtra per" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Tutti</SelectItem>
-                      <SelectItem value="sopralluogo">Sopralluoghi</SelectItem>
-                      <SelectItem value="installazione">Installazioni</SelectItem>
-                      <SelectItem value="riunione">Riunioni</SelectItem>
-                      <SelectItem value="consegna">Consegne</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
+            <AppointmentsCalendar
+              date={date}
+              onDateSelect={setDate}
+              typeFilter={typeFilter}
+              onTypeFilterChange={setTypeFilter}
+            />
           </div>
           
           <div className="flex-1">
-            <Card className="h-full">
-              <CardHeader className="pb-2">
-                <CardTitle>
-                  {todayAppointments.length > 0 
-                    ? `Appuntamenti del giorno (${todayAppointments.length})` 
-                    : 'Nessun appuntamento per la data selezionata'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {todayAppointments.map((appointment) => (
-                    <div 
-                      key={appointment.id} 
-                      className={`p-4 border rounded-md hover:bg-gray-50 cursor-pointer transition-colors ${
-                        selectedAppointment?.id === appointment.id ? 'border-primary bg-primary/5' : ''
-                      }`}
-                      onClick={() => setSelectedAppointment(appointment)}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-medium">{appointment.title}</h3>
-                          <p className="text-sm text-gray-500">{appointment.client}</p>
-                        </div>
-                        
-                        <Badge variant="outline" className={`
-                          ${appointment.type === 'sopralluogo' ? 'bg-blue-100 text-blue-800' : 
-                            appointment.type === 'installazione' ? 'bg-green-100 text-green-800' : 
-                            appointment.type === 'riunione' ? 'bg-purple-100 text-purple-800' : 
-                            'bg-yellow-100 text-yellow-800'}
-                        `}>
-                          {appointment.type === 'sopralluogo' ? 'Sopralluogo' : 
-                           appointment.type === 'installazione' ? 'Installazione' : 
-                           appointment.type === 'riunione' ? 'Riunione' : 'Consegna'}
-                        </Badge>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-2 mt-3">
-                        <div className="flex items-center text-sm text-gray-500">
-                          <Clock className="h-4 w-4 mr-1" />
-                          {new Date(appointment.datetime).toLocaleTimeString('it-IT', { 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                          })} - {new Date(appointment.endtime).toLocaleTimeString('it-IT', { 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                          })}
-                        </div>
-                        
-                        <div className="flex items-center text-sm text-gray-500">
-                          <MapPin className="h-4 w-4 mr-1" />
-                          {appointment.location}
-                        </div>
-                        
-                        <div className="flex items-center text-sm text-gray-500">
-                          <Users className="h-4 w-4 mr-1" />
-                          {appointment.technician}
-                        </div>
-
-                        {appointment.venditoreId && (
-                          <div className="flex items-center text-sm text-gray-500">
-                            <UserCheck className="h-4 w-4 mr-1" />
-                            {getVenditoreName(appointment.venditoreId)}
-                          </div>
-                        )}
-                      </div>
-                      
-                      {selectedAppointment?.id === appointment.id && (
-                        <div className="mt-3 pt-3 border-t text-sm">
-                          <p className="font-medium mb-1">Note:</p>
-                          <p className="text-gray-600">{appointment.notes}</p>
-                          
-                          <div className="mt-4 flex gap-2">
-                            <Button size="sm" variant="outline" className="text-xs">
-                              Modifica
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              className="text-xs bg-green-600 hover:bg-green-700"
-                              onClick={() => handleCompleteAppointment(appointment.id)}
-                            >
-                              <CheckCircle2 className="h-3 w-3 mr-1" />
-                              Completa
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <AppointmentsList
+              appointments={todayAppointments}
+              selectedAppointment={selectedAppointment}
+              onSelectAppointment={setSelectedAppointment}
+              onCompleteAppointment={handleCompleteAppointment}
+            />
           </div>
         </div>
       </div>
