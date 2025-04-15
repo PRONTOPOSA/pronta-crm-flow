@@ -1,5 +1,6 @@
 
 export type ContactFormData = {
+  id: string;
   nome: string;
   email: string;
   telefono: string;

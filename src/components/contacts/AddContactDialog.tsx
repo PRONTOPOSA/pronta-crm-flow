@@ -8,7 +8,6 @@ import {
   DialogTitle,
   DialogFooter,
   DialogTrigger,
-  DialogDescription,
   DialogClose
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -29,7 +28,7 @@ interface AddContactDialogProps {
 export const AddContactDialog = ({ contactType, onAddContact }: AddContactDialogProps) => {
   const [open, setOpen] = useState(false);
   const [newContact, setNewContact] = useState<ContactFormData>({
-    id: crypto.randomUUID(), // Add unique ID for each contact
+    id: crypto.randomUUID(),
     nome: '',
     email: '',
     telefono: '',
