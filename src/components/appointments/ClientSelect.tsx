@@ -46,8 +46,6 @@ export const ClientSelect = ({ value, onChange }: ClientSelectProps) => {
     );
   }, [searchQuery]);
 
-  const selectedClient = clientsData.find(client => client.name === value);
-  
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
