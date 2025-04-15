@@ -37,18 +37,21 @@ export const ClientSelect = ({ value, onChange }: ClientSelectProps) => {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   
+  // Make sure we always have a string for filtering, even if searchQuery is undefined
+  const safeSearchQuery = searchQuery || "";
+  
   const filteredClients = useMemo(() => {
-    if (!searchQuery) return clientsData;
+    if (!safeSearchQuery) return clientsData;
     
-    const searchLower = searchQuery.toLowerCase();
+    const searchLower = safeSearchQuery.toLowerCase();
     return clientsData.filter(client => 
       client.name.toLowerCase().includes(searchLower) || 
       client.email.toLowerCase().includes(searchLower)
     );
-  }, [searchQuery]);
+  }, [safeSearchQuery]);
 
-  // Find the selected client to display in the trigger button
-  const displayValue = value ? value : "Seleziona cliente...";
+  // Make sure we always return a valid string for the display value
+  const displayValue = value || "Seleziona cliente...";
   
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -67,7 +70,7 @@ export const ClientSelect = ({ value, onChange }: ClientSelectProps) => {
         <Command>
           <CommandInput 
             placeholder="Cerca cliente..." 
-            value={searchQuery}
+            value={safeSearchQuery}
             onValueChange={setSearchQuery}
           />
           <CommandEmpty>Nessun cliente trovato.</CommandEmpty>
