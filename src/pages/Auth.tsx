@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { toast } from '@/components/ui/use-toast';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -50,6 +52,24 @@ const Auth = () => {
             </button>
           </p>
         </div>
+
+        {!isLogin && (
+          <Alert variant="destructive" className="bg-orange-50 text-orange-800 border-orange-200">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Attenzione: Configurazione CAPTCHA richiesta</AlertTitle>
+            <AlertDescription>
+              Per la registrazione è necessario configurare il CAPTCHA in Supabase o disabilitarlo temporaneamente.
+              <br />
+              <br />
+              Per disabilitare il CAPTCHA durante lo sviluppo:
+              <ol className="list-decimal pl-5 mt-2 space-y-1">
+                <li>Vai a Dashboard Supabase &gt; Autenticazione &gt; Providers</li>
+                <li>Nella sezione "Email", disabilita l'opzione "Enable CAPTCHA Protection"</li>
+                <li>Salva le modifiche</li>
+              </ol>
+            </AlertDescription>
+          </Alert>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isLogin && (
