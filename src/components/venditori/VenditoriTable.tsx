@@ -26,9 +26,6 @@ export const VenditoriTable = ({
     venditore.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Controlla se il campo telefono esiste nell'oggetto User
-  const hasTelefonoField = venditori.length > 0 && 'telefono' in venditori[0];
-
   return (
     <Table>
       <TableHeader>
@@ -36,18 +33,17 @@ export const VenditoriTable = ({
           <TableHead>Nome</TableHead>
           <TableHead>Cognome</TableHead>
           <TableHead>Email</TableHead>
-          {hasTelefonoField && <TableHead>Telefono</TableHead>}
           <TableHead className="text-right">Azioni</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {isLoading ? (
           <TableRow>
-            <TableCell colSpan={hasTelefonoField ? 5 : 4} className="text-center py-4">Caricamento...</TableCell>
+            <TableCell colSpan={4} className="text-center py-4">Caricamento...</TableCell>
           </TableRow>
         ) : filteredVenditori.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={hasTelefonoField ? 5 : 4} className="text-center py-4">
+            <TableCell colSpan={4} className="text-center py-4">
               {searchQuery ? 'Nessun venditore corrisponde alla ricerca' : 'Nessun venditore disponibile'}
             </TableCell>
           </TableRow>
@@ -57,7 +53,6 @@ export const VenditoriTable = ({
               <TableCell>{venditore.nome}</TableCell>
               <TableCell>{venditore.cognome}</TableCell>
               <TableCell>{venditore.email}</TableCell>
-              {hasTelefonoField && <TableCell>{venditore.telefono || '-'}</TableCell>}
               <TableCell className="text-right">
                 {isAdmin && (
                   <Button 

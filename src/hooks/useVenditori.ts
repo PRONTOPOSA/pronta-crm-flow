@@ -32,19 +32,21 @@ export const useVenditori = () => {
 
   const createVenditore = async (formData: VenditoreFormData) => {
     try {
-      // Use maybeSingle() instead of single() to prevent error when no rows are found
+      // Controllo se l'utente esiste già
       const { data: existingUser, error: searchError } = await supabase
         .from('profiles')
         .select('id, email, ruolo')
         .eq('email', formData.email)
         .maybeSingle();
 
-      // We only throw if it's an actual error, not just "no rows found"
       if (searchError) {
+        console.error('Errore nella ricerca utente:', searchError);
         throw searchError;
       }
 
       if (existingUser) {
+        console.log('Utente esistente trovato:', existingUser);
+        
         if (existingUser.ruolo === 'venditore') {
           toast({
             title: "Utente già registrato",
@@ -54,12 +56,16 @@ export const useVenditori = () => {
           return;
         }
 
+        // Aggiorna il ruolo dell'utente esistente a venditore
         const { error: updateError } = await supabase
           .from('profiles')
           .update({ ruolo: 'venditore' })
-          .eq('email', formData.email);
+          .eq('id', existingUser.id);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error('Errore nell\'aggiornamento del ruolo:', updateError);
+          throw updateError;
+        }
 
         toast({
           title: "Ruolo aggiornato",
@@ -70,6 +76,14 @@ export const useVenditori = () => {
         return;
       }
 
+      console.log('Creazione nuovo utente con dati:', {
+        email: formData.email,
+        password: '[HIDDEN]',
+        nome: formData.nome,
+        cognome: formData.cognome
+      });
+
+      // Creazione nuovo utente
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -82,8 +96,14 @@ export const useVenditori = () => {
         }
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        console.error('Errore nella creazione utente:', authError);
+        throw authError;
+      }
 
+      console.log('Utente creato con successo:', authData);
+
+      // Assicuriamoci che il profilo sia stato creato correttamente
       if (authData.user) {
         const { error: profileError } = await supabase
           .from('profiles')
@@ -97,6 +117,30 @@ export const useVenditori = () => {
         if (profileError) {
           console.error('Errore nell\'aggiornamento del profilo:', profileError);
           throw profileError;
+        }
+
+        // Verifichiamo che il record nella tabella venditori esista
+        const { data: venditoreEsistente, error: checkError } = await supabase
+          .from('venditori')
+          .select('id')
+          .eq('user_id', authData.user.id)
+          .maybeSingle();
+
+        if (checkError) {
+          console.error('Errore nel controllo venditore:', checkError);
+          // Non blocchiamo il flusso per questo errore
+        }
+
+        // Se il venditore non esiste nella tabella venditori, crealo
+        if (!venditoreEsistente) {
+          const { error: insertError } = await supabase
+            .from('venditori')
+            .insert({ user_id: authData.user.id });
+
+          if (insertError) {
+            console.error('Errore nell\'inserimento venditore:', insertError);
+            // Non blocchiamo il flusso per questo errore
+          }
         }
       }
 
