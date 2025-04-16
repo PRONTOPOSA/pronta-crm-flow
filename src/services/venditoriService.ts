@@ -81,21 +81,27 @@ export const ensureVenditoreRecord = async (userId: string) => {
 };
 
 export const deleteVenditoreProfile = async (userId: string) => {
-  // Prima eliminiamo il record dalla tabella venditori
-  const { error: deleteVenditoreError } = await supabase
-    .from('venditori')
-    .delete()
-    .eq('user_id', userId);
+  try {
+    // First delete from venditori table
+    const { error: deleteVenditoreError } = await supabase
+      .from('venditori')
+      .delete()
+      .eq('user_id', userId);
 
-  if (deleteVenditoreError) throw deleteVenditoreError;
+    if (deleteVenditoreError) throw deleteVenditoreError;
 
-  // Poi aggiorniamo il ruolo dell'utente a operatore invece di eliminarlo completamente
-  const { error: updateError } = await supabase
-    .from('profiles')
-    .update({ ruolo: 'operatore' })
-    .eq('id', userId);
+    // Then delete from profiles table
+    const { error: deleteProfileError } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', userId);
 
-  if (updateError) throw updateError;
+    if (deleteProfileError) throw deleteProfileError;
 
-  console.log('Venditore converted to operatore:', userId);
+    console.log('Successfully deleted venditore profile and user:', userId);
+    return true;
+  } catch (error) {
+    console.error('Error deleting venditore:', error);
+    throw error;
+  }
 };
