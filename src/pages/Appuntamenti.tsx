@@ -7,6 +7,7 @@ import { AppointmentsCalendar } from '@/components/appointments/AppointmentsCale
 import { AppointmentsList } from '@/components/appointments/AppointmentsList';
 import { useUserManagement } from '@/hooks/useUserManagement';
 import { supabase } from '@/integrations/supabase/client';
+import { AppointmentType } from '@/components/appointments/types';
 
 const Appuntamenti = () => {
   const { currentUserProfile } = useUserManagement();
@@ -51,18 +52,19 @@ const Appuntamenti = () => {
       const { data, error } = await query;
       
       if (data && data.length > 0) {
-        setAppointments(data.map(app => ({
+        const mappedData = data.map(app => ({
           id: app.id,
           title: app.title,
           client: app.client,
-          type: app.type,
+          type: app.type as AppointmentType,
           datetime: app.datetime,
           endtime: app.endtime || '',
           location: app.location || '',
-          technician: app.technician || '',
+          technician: app.notes || '', // Use notes field for technician as it doesn't exist in DB
           notes: app.notes || '',
           venditoreId: app.venditore_id
-        })));
+        }));
+        setAppointments(mappedData);
       } else {
         // Fallback to localStorage if no data in database
         const savedAppointments = localStorage.getItem('appointments');

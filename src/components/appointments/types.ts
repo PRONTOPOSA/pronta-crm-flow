@@ -11,3 +11,6 @@ export interface AppointmentFormData {
   notes: string;
   venditoreId?: string;
 }
+
+export type AppointmentType = 'sopralluogo' | 'installazione' | 'riunione' | 'consegna';
+
