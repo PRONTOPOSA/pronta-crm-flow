@@ -3,7 +3,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, Clock, MapPin, Users, UserCheck } from 'lucide-react';
-import { AppointmentFormData } from './AppointmentDialog';
+import { AppointmentFormData } from './types';
 import { mockVenditori } from '@/types/venditori';
 
 interface AppointmentListItemProps {

@@ -14,7 +14,7 @@ import {
   FormControl,
   FormMessage,
 } from '@/components/ui/form';
-import type { VenditoreFormData } from '@/hooks/useVenditori';
+import type { VenditoreFormData } from '@/types/venditori';
 
 const venditoreSchema = z.object({
   nome: z.string().min(2, { message: 'Il nome deve avere almeno 2 caratteri' }),
