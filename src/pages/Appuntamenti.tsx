@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Calendar } from 'lucide-react';
 import { Calendar as CalendarUI } from "@/components/ui/calendar";
@@ -6,21 +7,25 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { AppointmentsList } from '@/components/appointments/AppointmentsList';
-import { AppointmentDialog } from '@/components/appointments/AppointmentDialog'; // Cambio qui: use AppointmentDialog
+import { AppointmentDialog } from '@/components/appointments/AppointmentDialog'; // Use AppointmentDialog instead
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/contexts/AuthContext';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AppointmentFormData } from '@/components/appointments/types';
 
 const Appuntamenti = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [appointments, setAppointments] = useState([]);
-  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [appointments, setAppointments] = useState<AppointmentFormData[]>([]);
+  const [selectedAppointment, setSelectedAppointment] = useState<AppointmentFormData | null>(null);
   const [isVenditore, setIsVenditore] = useState(false);
   const { toast } = useToast();
   const { user, currentUserProfile } = useUser();
   const [selectedType, setSelectedType] = useState('all');
+  const [isLoading, setIsLoading] = useState(false);
+  const [venditori, setVenditori] = useState<Array<{id: string, nome: string, cognome: string}>>([]);
+  const [selectedVenditoreId, setSelectedVenditoreId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (currentUserProfile?.ruolo === 'venditore') {
@@ -30,47 +35,108 @@ const Appuntamenti = () => {
     }
   }, [currentUserProfile]);
 
+  // Fetch venditori if user is not a venditore
+  useEffect(() => {
+    const fetchVenditori = async () => {
+      if (!isVenditore) {
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('id, nome, cognome')
+            .eq('ruolo', 'venditore');
+
+          if (error) {
+            console.error("Error fetching venditori:", error);
+            return;
+          }
+
+          if (data) {
+            setVenditori(data);
+          }
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+    };
+
+    fetchVenditori();
+  }, [isVenditore]);
+
   useEffect(() => {
     const fetchAppointments = async () => {
       if (!date) return;
 
-      const formattedDate = format(date, 'yyyy-MM-dd');
-      let query = supabase
-        .from('appointments')
-        .select('*')
-        .gte('datetime', `${formattedDate}T00:00:00+00:00`)
-        .lt('datetime', `${formattedDate}T23:59:59+00:00`);
+      try {
+        setIsLoading(true);
+        const formattedDate = format(date, 'yyyy-MM-dd');
+        
+        // Create query based on the correct table name "appuntamenti" (not "appointments")
+        let query = supabase
+          .from('appuntamenti')
+          .select('*')
+          .gte('datetime', `${formattedDate}T00:00:00+00:00`)
+          .lt('datetime', `${formattedDate}T23:59:59+00:00`);
 
-      if (selectedType !== 'all') {
-        query = query.eq('type', selectedType);
-      }
+        if (selectedType !== 'all') {
+          query = query.eq('type', selectedType);
+        }
 
-      if (isVenditore && user?.id) {
-        query = query.eq('venditoreId', user.id);
-      }
+        if (isVenditore && user?.id) {
+          query = query.eq('venditore_id', user.id);
+        } else if (selectedVenditoreId) {
+          query = query.eq('venditore_id', selectedVenditoreId);
+        }
 
-      const { data, error } = await query;
+        const { data, error } = await query;
 
-      if (error) {
+        if (error) {
+          toast({
+            title: "Errore nel caricamento degli appuntamenti",
+            description: "Si è verificato un errore nel caricamento degli appuntamenti dal database.",
+            variant: "destructive"
+          });
+          console.error("Error fetching appointments:", error);
+          setAppointments([]);
+        } else if (data) {
+          // Map the data to the correct format expected by AppointmentsList
+          const mappedData = data.map(item => ({
+            id: item.id,
+            title: item.title,
+            client: item.client,
+            type: item.type as 'sopralluogo' | 'installazione' | 'riunione' | 'consegna',
+            datetime: item.datetime,
+            endtime: item.endtime || '',
+            location: item.location,
+            technician: '', // This field is needed by AppointmentFormData but not in the DB
+            notes: item.notes || '',
+            venditoreId: item.venditore_id
+          }));
+          setAppointments(mappedData);
+        } else {
+          setAppointments([]);
+        }
+      } catch (error) {
+        console.error("Error:", error);
         toast({
-          title: "Errore nel caricamento degli appuntamenti",
-          description: "Si è verificato un errore nel caricamento degli appuntamenti dal database.",
+          title: "Errore",
+          description: "Si è verificato un errore durante il caricamento degli appuntamenti.",
           variant: "destructive"
         });
-        console.error("Error fetching appointments:", error);
-      } else {
-        setAppointments(data || []);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchAppointments();
-  }, [date, toast, isVenditore, user?.id, selectedType]);
+  }, [date, toast, isVenditore, user?.id, selectedType, selectedVenditoreId]);
 
-  const handleAppointmentSelect = (appointment) => {
+  const handleAppointmentSelect = (appointment: AppointmentFormData) => {
     setSelectedAppointment(appointment);
   };
 
-  const handleAddAppointment = (newAppointment) => {
+  const handleAddAppointment = (newAppointment: AppointmentFormData) => {
+    // Here we'd normally send the appointment to the server
+    // For now we'll just update the local state
     setAppointments(prevAppointments => [...prevAppointments, newAppointment]);
   };
 
@@ -96,9 +162,6 @@ const Appuntamenti = () => {
                 mode="single"
                 selected={date}
                 onSelect={setDate}
-                disabled={(date) =>
-                  date > new Date()
-                }
                 initialFocus
               />
             </PopoverContent>
@@ -119,6 +182,28 @@ const Appuntamenti = () => {
               </SelectContent>
             </Select>
           </div>
+
+          {!isVenditore && (
+            <div className="mt-4">
+              <Label htmlFor="venditore">Filtra per venditore:</Label>
+              <Select 
+                value={selectedVenditoreId} 
+                onValueChange={(value) => setSelectedVenditoreId(value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Tutti i venditori" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Tutti i venditori</SelectItem>
+                  {venditori.map((venditore) => (
+                    <SelectItem key={venditore.id} value={venditore.id}>
+                      {venditore.nome} {venditore.cognome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
         
         <div className="md:col-span-2">
