@@ -20,6 +20,11 @@ export const useUserManagement = () => {
   const [editingUser, setEditingUser] = useState<string | null>(null);
   const [editingRoles, setEditingRoles] = useState<Record<string, 'admin' | 'operatore'>>({});
 
+  console.log('useUserManagement - Initial State:', {
+    editingUser,
+    editingRoles
+  });
+
   const { data: currentUserProfile } = useQuery({
     queryKey: ['currentUserProfile'],
     queryFn: async () => {
@@ -137,6 +142,8 @@ export const useUserManagement = () => {
 
   const handleDeleteUser = async (userId: string) => {
     const isAdmin = currentUserProfile?.ruolo === 'admin';
+    console.log(`Attempting to delete user ${userId}. Admin status: ${isAdmin}`);
+
     if (!isAdmin) {
       toast({
         title: "Accesso negato",
@@ -158,6 +165,7 @@ export const useUserManagement = () => {
       if (users) {
         const updatedUsers = users.filter(u => u.id !== userId);
         queryClient.setQueryData(['users'], updatedUsers);
+        console.log('Updated users array after deletion:', updatedUsers);
       }
 
       toast({
