@@ -28,6 +28,7 @@ export const useVenditori = () => {
         cognome: formData.cognome
       });
 
+      // Check if user already exists
       const existingUser = await checkExistingUser(formData.email);
 
       if (existingUser) {
@@ -40,7 +41,9 @@ export const useVenditori = () => {
           return;
         }
 
+        // Update existing user to vendor role
         await updateUserRole(existingUser.id);
+        // Make sure the vendor record exists in the 'venditori' table
         await ensureVenditoreRecord(existingUser.id);
 
         toast({
@@ -48,6 +51,7 @@ export const useVenditori = () => {
           description: "L'utente esistente è stato convertito a venditore.",
         });
       } else {
+        // Create new user
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
@@ -63,8 +67,12 @@ export const useVenditori = () => {
         if (authError) throw authError;
 
         if (authData.user) {
+          // Ensure user role is set to venditore
           await updateUserRole(authData.user.id);
+          // Make sure the vendor record exists in the 'venditori' table
           await ensureVenditoreRecord(authData.user.id);
+          
+          console.log('Created new user and vendor record with ID:', authData.user.id);
         }
 
         toast({

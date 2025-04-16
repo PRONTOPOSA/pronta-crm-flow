@@ -42,6 +42,7 @@ export const updateUserRole = async (userId: string) => {
 };
 
 export const ensureVenditoreRecord = async (userId: string) => {
+  // Check if the vendor record already exists
   const { data: venditoreExists, error: checkError } = await supabase
     .from('venditori')
     .select('id')
@@ -50,12 +51,16 @@ export const ensureVenditoreRecord = async (userId: string) => {
 
   if (checkError) throw checkError;
 
+  // If it doesn't exist, create a new vendor record
   if (!venditoreExists) {
     const { error: insertError } = await supabase
       .from('venditori')
       .insert({ user_id: userId });
 
     if (insertError) throw insertError;
+    console.log('Created new vendor record for user:', userId);
+  } else {
+    console.log('Vendor record already exists for user:', userId);
   }
 };
 
