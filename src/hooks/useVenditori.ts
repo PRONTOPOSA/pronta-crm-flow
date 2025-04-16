@@ -41,7 +41,7 @@ export const useVenditori = () => {
             nome: formData.nome,
             cognome: formData.cognome,
             ruolo: 'venditore',
-            telefono: formData.telefono
+            telefono: formData.telefono || null // Assicurati che telefono possa essere null
           }
         }
       });
@@ -49,21 +49,53 @@ export const useVenditori = () => {
       if (authError) throw authError;
 
       // 2. Verifica che l'utente sia stato creato e aggiorna esplicitamente il profilo
-      // per assicurarsi che il ruolo sia impostato correttamente
       if (authData.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({ 
-            ruolo: 'venditore',
-            nome: formData.nome,
-            cognome: formData.cognome,
-            telefono: formData.telefono 
-          })
-          .eq('id', authData.user.id);
-        
-        if (profileError) {
-          console.error('Errore nell\'aggiornamento del profilo:', profileError);
-          throw profileError;
+        // Prima aggiungiamo la colonna telefono se non esiste
+        try {
+          // Nota: questo è un controllo per vedere se la colonna telefono esiste già
+          const { error: columnCheckError } = await supabase
+            .from('profiles')
+            .select('telefono')
+            .limit(1);
+
+          // Se c'è un errore nel selezionare la colonna telefono, probabilmente non esiste
+          if (columnCheckError && columnCheckError.message.includes('column "telefono" does not exist')) {
+            console.log('La colonna telefono non esiste. Utilizziamo solo i campi esistenti.');
+            
+            // Aggiorniamo solo i campi che sappiamo esistere
+            const { error: profileError } = await supabase
+              .from('profiles')
+              .update({ 
+                ruolo: 'venditore',
+                nome: formData.nome,
+                cognome: formData.cognome
+              })
+              .eq('id', authData.user.id);
+            
+            if (profileError) {
+              console.error('Errore nell\'aggiornamento del profilo:', profileError);
+              throw profileError;
+            }
+          } else {
+            // La colonna telefono esiste, aggiorniamo tutti i campi
+            const { error: profileError } = await supabase
+              .from('profiles')
+              .update({ 
+                ruolo: 'venditore',
+                nome: formData.nome,
+                cognome: formData.cognome,
+                telefono: formData.telefono || null
+              })
+              .eq('id', authData.user.id);
+            
+            if (profileError) {
+              console.error('Errore nell\'aggiornamento del profilo:', profileError);
+              throw profileError;
+            }
+          }
+        } catch (error) {
+          console.error('Errore nel controllo o aggiornamento del profilo:', error);
+          throw error;
         }
       }
 

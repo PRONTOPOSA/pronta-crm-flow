@@ -6,6 +6,6 @@ export interface User {
   email: string;
   ruolo: 'admin' | 'operatore' | 'venditore';
   data_creazione: string;
-  telefono?: string;
+  telefono?: string | null;
   user_id?: string;
 }
