@@ -25,7 +25,7 @@ export const useUserManagement = () => {
     editingRoles
   });
 
-  const { data: currentUserProfile } = useQuery({
+  const { data: currentUserProfile, isLoading: isProfileLoading } = useQuery({
     queryKey: ['currentUserProfile'],
     queryFn: async () => {
       console.log('Fetching current user profile');
@@ -44,7 +44,7 @@ export const useUserManagement = () => {
     }
   });
 
-  const { data: users, isLoading } = useQuery({
+  const { data: users, isLoading: isUsersLoading } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
       console.log('Fetching users');
@@ -61,6 +61,10 @@ export const useUserManagement = () => {
       return data as User[];
     }
   });
+
+  // Explicitly check if user is admin
+  const isAdmin = currentUserProfile?.ruolo === 'admin';
+  console.log('Current user is admin:', isAdmin);
 
   const handleEditStart = (user: User) => {
     console.log('Starting edit for user:', user);
@@ -80,7 +84,6 @@ export const useUserManagement = () => {
   };
 
   const handleRoleUpdate = async (userId: string) => {
-    const isAdmin = currentUserProfile?.ruolo === 'admin';
     console.log(`Attempting to update role for user ${userId}. Admin status: ${isAdmin}`);
 
     if (!isAdmin) {
@@ -141,7 +144,6 @@ export const useUserManagement = () => {
   };
 
   const handleDeleteUser = async (userId: string) => {
-    const isAdmin = currentUserProfile?.ruolo === 'admin';
     console.log(`Attempting to delete user ${userId}. Admin status: ${isAdmin}`);
 
     if (!isAdmin) {
@@ -187,10 +189,10 @@ export const useUserManagement = () => {
 
   return {
     users,
-    isLoading,
+    isLoading: isProfileLoading || isUsersLoading,
     editingUser,
     editingRoles,
-    isAdmin: currentUserProfile?.ruolo === 'admin',
+    isAdmin,
     handleEditStart,
     handleRoleChange,
     handleRoleUpdate,
