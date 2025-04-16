@@ -35,7 +35,7 @@ export const useVenditori = () => {
       // Prima verifichiamo se l'utente esiste già
       const { data: existingUser, error: searchError } = await supabase
         .from('profiles')
-        .select('id, email')
+        .select('id, email, ruolo')  // Include 'ruolo' in the query
         .eq('email', formData.email)
         .single();
 
