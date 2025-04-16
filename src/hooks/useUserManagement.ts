@@ -1,4 +1,3 @@
-
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
@@ -55,16 +54,13 @@ export const useUserManagement = () => {
   // Aggiorna localIsAdmin quando il profilo utente cambia
   useEffect(() => {
     if (currentUserProfile) {
-      const isAdminValue = currentUserProfile.ruolo === 'admin';
-      console.log('Updating isAdmin state to:', isAdminValue);
-      setLocalIsAdmin(isAdminValue);
+      setLocalIsAdmin(currentUserProfile.ruolo === 'admin');
     }
   }, [currentUserProfile]);
 
   // Usa lo stato locale per isAdmin
   const isAdmin = localIsAdmin;
-  console.log('Current user is admin:', isAdmin, typeof isAdmin);
-  
+
   const roleManagement = useUserRoles(isAdmin);
 
   const handleDeleteUser = async (userId: string) => {
@@ -105,7 +101,6 @@ export const useUserManagement = () => {
     }
   };
 
-  // Funzione per impostare manualmente l'utente corrente come admin
   const promoteToAdmin = async () => {
     if (!user?.id) return;
     
@@ -155,6 +150,7 @@ export const useUserManagement = () => {
     users: users || [],
     isLoading: isProfileLoading || isUsersLoading,
     isAdmin,
+    currentUserProfile,
     handleDeleteUser,
     promoteToAdmin,
     ...roleManagement

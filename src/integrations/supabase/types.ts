@@ -9,6 +9,53 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      appuntamenti: {
+        Row: {
+          client: string
+          created_at: string
+          datetime: string
+          endtime: string | null
+          id: string
+          location: string
+          notes: string | null
+          title: string
+          type: string
+          venditore_id: string | null
+        }
+        Insert: {
+          client: string
+          created_at?: string
+          datetime: string
+          endtime?: string | null
+          id?: string
+          location: string
+          notes?: string | null
+          title: string
+          type: string
+          venditore_id?: string | null
+        }
+        Update: {
+          client?: string
+          created_at?: string
+          datetime?: string
+          endtime?: string | null
+          id?: string
+          location?: string
+          notes?: string | null
+          title?: string
+          type?: string
+          venditore_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appuntamenti_venditore_id_fkey"
+            columns: ["venditore_id"]
+            isOneToOne: false
+            referencedRelation: "venditori"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           cognome: string
@@ -35,6 +82,24 @@ export type Database = {
           id?: string
           nome?: string
           ruolo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      venditori: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
           user_id?: string
         }
         Relationships: []
