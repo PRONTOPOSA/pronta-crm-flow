@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -27,7 +28,7 @@ const UserTable = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [editingUser, setEditingUser] = useState<string | null>(null);
-  const [selectedRole, setSelectedRole] = useState<'admin' | 'operatore'>('operatore');
+  const [editingRoles, setEditingRoles] = useState<Record<string, 'admin' | 'operatore'>>({});
 
   const { data: currentUserProfile } = useQuery({
     queryKey: ['currentUserProfile'],
@@ -67,6 +68,22 @@ const UserTable = () => {
     });
   };
 
+  const handleEditStart = (user: User) => {
+    setEditingUser(user.id);
+    // Inizializza lo stato di modifica con il ruolo attuale dell'utente
+    setEditingRoles(prev => ({
+      ...prev,
+      [user.id]: user.ruolo
+    }));
+  };
+
+  const handleRoleChange = (userId: string, role: 'admin' | 'operatore') => {
+    setEditingRoles(prev => ({
+      ...prev,
+      [userId]: role
+    }));
+  };
+
   const handleRoleUpdate = async (userId: string) => {
     if (!isAdmin) {
       toast({
@@ -77,10 +94,20 @@ const UserTable = () => {
       return;
     }
 
+    const newRole = editingRoles[userId];
+    if (!newRole) {
+      toast({
+        title: "Errore",
+        description: "Ruolo non selezionato.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ ruolo: selectedRole })
+        .update({ ruolo: newRole })
         .eq('id', userId);
 
       if (error) throw error;
@@ -140,8 +167,8 @@ const UserTable = () => {
               <TableCell>
                 {editingUser === user.id ? (
                   <Select
-                    value={selectedRole}
-                    onValueChange={(value: 'admin' | 'operatore') => setSelectedRole(value)}
+                    value={editingRoles[user.id]}
+                    onValueChange={(value: 'admin' | 'operatore') => handleRoleChange(user.id, value)}
                   >
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Seleziona ruolo" />
@@ -179,10 +206,7 @@ const UserTable = () => {
                     <Button 
                       variant="ghost" 
                       size="icon"
-                      onClick={() => {
-                        setSelectedRole(user.ruolo);
-                        setEditingUser(user.id);
-                      }}
+                      onClick={() => handleEditStart(user)}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
