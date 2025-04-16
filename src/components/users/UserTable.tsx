@@ -7,6 +7,16 @@ import { UserRoleSelect } from './UserRoleSelect';
 import { UserTableLoading } from './UserTableLoading';
 import { useUserManagement } from '@/hooks/useUserManagement';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const UserTable = () => {
   const {
@@ -22,6 +32,10 @@ const UserTable = () => {
     setEditingUser,
     promoteToAdmin
   } = useUserManagement();
+
+  // State for delete confirmation dialog
+  const [deleteDialog, setDeleteDialog] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
   // Stato locale per tenere traccia se è stato promosso di recente
   const [recentlyPromoted, setRecentlyPromoted] = useState(false);
@@ -59,6 +73,19 @@ const UserTable = () => {
     await promoteToAdmin();
   };
 
+  const confirmDelete = (userId: string) => {
+    setUserToDelete(userId);
+    setDeleteDialog(true);
+  };
+
+  const executeDelete = () => {
+    if (userToDelete) {
+      handleDeleteUser(userToDelete);
+      setUserToDelete(null);
+      setDeleteDialog(false);
+    }
+  };
+
   if (isLoading) {
     return <UserTableLoading />;
   }
@@ -88,6 +115,24 @@ const UserTable = () => {
           </Alert>
         </div>
       )}
+      
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialog} onOpenChange={setDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Conferma eliminazione</AlertDialogTitle>
+            <AlertDialogDescription>
+              Sei sicuro di voler eliminare questo utente? Questa azione non può essere annullata.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogAction onClick={executeDelete} className="bg-red-600 hover:bg-red-700">
+              Elimina
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       
       <Table>
         <TableHeader>
@@ -153,7 +198,7 @@ const UserTable = () => {
                         <Button 
                           variant="ghost" 
                           size="icon"
-                          onClick={() => handleDeleteUser(user.id)}
+                          onClick={() => confirmDelete(user.id)}
                           className="cursor-pointer"
                         >
                           <Trash2 className="h-4 w-4 text-red-600" />

@@ -1,6 +1,7 @@
+
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRoles } from './useUserRoles';
 import type { User } from '@/types/users';
@@ -76,6 +77,25 @@ export const useUserManagement = () => {
     }
 
     try {
+      // First check if this user has a venditore record that needs to be deleted
+      const { data: venditoreData } = await supabase
+        .from('venditori')
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      if (venditoreData) {
+        // If user is a venditore, delete their record from the venditori table first
+        const { error: deleteVenditoreError } = await supabase
+          .from('venditori')
+          .delete()
+          .eq('user_id', userId);
+          
+        if (deleteVenditoreError) throw deleteVenditoreError;
+        console.log('Deleted venditore record for user:', userId);
+      }
+
+      // Now delete the user profile
       const { error } = await supabase
         .from('profiles')
         .delete()
@@ -83,19 +103,22 @@ export const useUserManagement = () => {
 
       if (error) throw error;
 
+      console.log('Successfully deleted user profile:', userId);
+      
       toast({
         title: "Utente eliminato",
         description: "L'utente è stato eliminato con successo.",
       });
 
       // Aggiorna la lista utenti dopo l'eliminazione
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      await queryClient.invalidateQueries({ queryKey: ['users'] });
+      await queryClient.invalidateQueries({ queryKey: ['venditori'] });
 
     } catch (error: any) {
       console.error('Error deleting user:', error);
       toast({
         title: "Errore",
-        description: error.message,
+        description: error.message || "Si è verificato un errore durante l'eliminazione dell'utente",
         variant: "destructive"
       });
     }
