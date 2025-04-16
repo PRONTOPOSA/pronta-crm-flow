@@ -6,6 +6,7 @@ import AppointmentList from '@/components/dashboard/AppointmentList';
 import CalendarPreview from '@/components/dashboard/CalendarPreview';
 import { useUserManagement } from '@/hooks/useUserManagement';
 import { supabase } from '@/integrations/supabase/client';
+import { AppointmentType } from '@/components/appointments/types';
 
 const Dashboard = () => {
   const { currentUserProfile } = useUserManagement();

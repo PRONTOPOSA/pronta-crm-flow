@@ -10,7 +10,7 @@ import { AddAppointmentDialog } from '@/components/appointments/AddAppointmentDi
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { AppointmentFormData, AppointmentType } from '@/components/appointments/types';
-import { useUser } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -20,7 +20,7 @@ const Appuntamenti = () => {
   const [selectedAppointment, setSelectedAppointment] = useState<AppointmentFormData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { currentUserProfile } = useUser();
+  const { currentUserProfile } = useAuth();
   const [selectedVenditoreId, setSelectedVenditoreId] = useState<string | null>(null);
   const [availableVenditori, setAvailableVenditori] = useState<{ id: string; nome: string; cognome: string; }[]>([]);
   const [isVenditore, setIsVenditore] = useState(false);
