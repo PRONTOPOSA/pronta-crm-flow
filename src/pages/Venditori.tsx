@@ -38,7 +38,7 @@ const Venditori = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold">Gestione Venditori</h1>
-            <p className="text-gray-500">Questa sezione è dedicata esclusivamente alla gestione dei venditori</p>
+            <p className="text-gray-500">Qui puoi registrare i venditori che riceveranno gli appuntamenti dai lead</p>
           </div>
           
           {(isAdmin || currentUserProfile?.ruolo === 'operatore') && (
@@ -84,7 +84,7 @@ const Venditori = () => {
           <DialogHeader>
             <DialogTitle>Nuovo Venditore</DialogTitle>
             <DialogDescription>
-              Inserisci i dati del nuovo venditore da aggiungere al sistema.
+              Inserisci i dati del nuovo venditore. I venditori potranno accedere per controllare i propri appuntamenti.
             </DialogDescription>
           </DialogHeader>
           <VenditoreForm

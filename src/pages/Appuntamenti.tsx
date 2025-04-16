@@ -1,104 +1,133 @@
+
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
 import { AppointmentDialog, AppointmentFormData } from '@/components/appointments/AppointmentDialog';
 import { toast } from '@/components/ui/use-toast';
 import { AppointmentsCalendar } from '@/components/appointments/AppointmentsCalendar';
 import { AppointmentsList } from '@/components/appointments/AppointmentsList';
-
-// Initial mock data for appointments
-const initialAppointments = [
-  { 
-    id: '1', 
-    title: 'Sopralluogo per infissi', 
-    client: 'Marco Rossi',
-    type: 'sopralluogo',
-    datetime: '2025-04-15T10:00:00',
-    endtime: '2025-04-15T11:30:00',
-    location: 'Via Roma 123, Milano',
-    technician: 'Luca Bianchi',
-    notes: 'Cliente interessato alla sostituzione di tutti gli infissi del primo piano.',
-    venditoreId: '1'
-  },
-  { 
-    id: '2', 
-    title: 'Installazione finestre', 
-    client: 'Laura Bianchi',
-    type: 'installazione',
-    datetime: '2025-04-15T14:00:00',
-    endtime: '2025-04-15T18:00:00',
-    location: 'Via Verdi 45, Roma',
-    technician: 'Mario Verdi',
-    notes: 'Portare tutti gli strumenti necessari e i 3 infissi già pronti.',
-    venditoreId: '2'
-  },
-  { 
-    id: '3', 
-    title: 'Riunione con Costruzioni Veloci', 
-    client: 'Costruzioni Veloci SRL',
-    type: 'riunione',
-    datetime: '2025-04-16T09:30:00',
-    endtime: '2025-04-16T10:30:00',
-    location: 'Sede aziendale',
-    technician: 'Direttore Tecnico',
-    notes: 'Discutere della collaborazione sul progetto di via Milano.'
-  },
-  { 
-    id: '4', 
-    title: 'Sopralluogo appartamento', 
-    client: 'Giuseppe Verdi',
-    type: 'sopralluogo',
-    datetime: '2025-04-17T11:00:00',
-    endtime: '2025-04-17T12:30:00',
-    location: 'Via Napoli 67, Bologna',
-    technician: 'Luca Bianchi',
-    notes: 'Cliente interessato a porte interne e portoncino.'
-  },
-  { 
-    id: '5', 
-    title: 'Consegna materiale', 
-    client: 'Progetti Edilizi SpA',
-    type: 'consegna',
-    datetime: '2025-04-17T15:00:00',
-    endtime: '2025-04-17T16:00:00',
-    location: 'Cantiere Via Torino 89, Milano',
-    technician: 'Autista',
-    notes: 'Consegna 5 portefinestre e accessori.'
-  }
-] as AppointmentFormData[];
+import { useUserManagement } from '@/hooks/useUserManagement';
+import { supabase } from '@/integrations/supabase/client';
 
 const Appuntamenti = () => {
+  const { currentUserProfile } = useUserManagement();
+  const isVenditore = currentUserProfile?.ruolo === 'venditore';
+  
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedAppointment, setSelectedAppointment] = useState<AppointmentFormData | null>(null);
   const [appointments, setAppointments] = useState<AppointmentFormData[]>([]);
   const [typeFilter, setTypeFilter] = useState('all');
+  const [venditoreId, setVenditoreId] = useState<string | undefined>(undefined);
   
-  // Load appointments from localStorage on component mount
+  // Fetch venditore_id if the user is a venditore
   useEffect(() => {
-    const savedAppointments = localStorage.getItem('appointments');
-    if (savedAppointments) {
-      setAppointments(JSON.parse(savedAppointments));
-    } else {
-      setAppointments(initialAppointments);
-      localStorage.setItem('appointments', JSON.stringify(initialAppointments));
-    }
-  }, []);
+    const fetchVenditoreId = async () => {
+      if (isVenditore && currentUserProfile) {
+        const { data: venditoreData } = await supabase
+          .from('venditori')
+          .select('id')
+          .eq('user_id', currentUserProfile.id)
+          .single();
+        
+        if (venditoreData) {
+          setVenditoreId(venditoreData.id);
+        }
+      }
+    };
+
+    fetchVenditoreId();
+  }, [isVenditore, currentUserProfile]);
   
-  // Save appointments to localStorage when they change
+  // Load appointments from database or localStorage
   useEffect(() => {
-    if (appointments.length > 0) {
-      localStorage.setItem('appointments', JSON.stringify(appointments));
-    }
-  }, [appointments]);
+    const loadAppointments = async () => {
+      // Try to load from database first
+      let query = supabase.from('appuntamenti').select('*');
+      
+      // If user is a venditore, only show their appointments
+      if (isVenditore && venditoreId) {
+        query = query.eq('venditore_id', venditoreId);
+      }
+
+      const { data, error } = await query;
+      
+      if (data && data.length > 0) {
+        setAppointments(data.map(app => ({
+          id: app.id,
+          title: app.title,
+          client: app.client,
+          type: app.type,
+          datetime: app.datetime,
+          endtime: app.endtime || '',
+          location: app.location || '',
+          technician: app.technician || '',
+          notes: app.notes || '',
+          venditoreId: app.venditore_id
+        })));
+      } else {
+        // Fallback to localStorage if no data in database
+        const savedAppointments = localStorage.getItem('appointments');
+        if (savedAppointments) {
+          let parsedAppointments = JSON.parse(savedAppointments);
+          
+          // If user is a venditore, filter to only show their appointments
+          if (isVenditore && venditoreId) {
+            parsedAppointments = parsedAppointments.filter(
+              (app: AppointmentFormData) => app.venditoreId === venditoreId
+            );
+          }
+          
+          setAppointments(parsedAppointments);
+        }
+      }
+    };
+    
+    loadAppointments();
+  }, [isVenditore, venditoreId]);
   
-  const handleAddAppointment = (newAppointment: AppointmentFormData) => {
-    setAppointments(prev => [...prev, newAppointment]);
-    setDate(new Date(newAppointment.datetime));
-    toast({
-      title: "Appuntamento creato",
-      description: `L'appuntamento "${newAppointment.title}" è stato aggiunto con successo.`
-    });
+  const handleAddAppointment = async (newAppointment: AppointmentFormData) => {
+    try {
+      // Try to save to database first
+      const { data, error } = await supabase
+        .from('appuntamenti')
+        .insert({
+          id: newAppointment.id,
+          title: newAppointment.title,
+          client: newAppointment.client,
+          type: newAppointment.type,
+          datetime: newAppointment.datetime,
+          endtime: newAppointment.endtime,
+          location: newAppointment.location,
+          notes: newAppointment.notes,
+          venditore_id: newAppointment.venditoreId
+        })
+        .select();
+      
+      if (error) throw error;
+      
+      // Update local state
+      setAppointments(prev => [...prev, newAppointment]);
+      setDate(new Date(newAppointment.datetime));
+      
+      toast({
+        title: "Appuntamento creato",
+        description: `L'appuntamento "${newAppointment.title}" è stato aggiunto con successo.`
+      });
+      
+      // Update localStorage as backup
+      const updatedAppointments = [...appointments, newAppointment];
+      localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
+    } catch (error: any) {
+      console.error('Errore durante la creazione dell\'appuntamento:', error);
+      toast({
+        title: "Errore",
+        description: error.message || "Errore durante la creazione dell'appuntamento",
+        variant: "destructive"
+      });
+      
+      // Fallback to localStorage only
+      setAppointments(prev => [...prev, newAppointment]);
+      localStorage.setItem('appointments', JSON.stringify([...appointments, newAppointment]));
+    }
   };
   
   const handleCompleteAppointment = (id: string) => {
@@ -108,6 +137,13 @@ const Appuntamenti = () => {
       title: "Appuntamento completato",
       description: "L'appuntamento è stato contrassegnato come completato."
     });
+    
+    // Also update localStorage
+    const updatedAppointments = appointments.filter(app => app.id !== id);
+    localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
+    
+    // Try to delete from database
+    supabase.from('appuntamenti').delete().eq('id', id);
   };
   
   const getFilteredAppointments = () => {
@@ -137,10 +173,21 @@ const Appuntamenti = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold">Calendario Appuntamenti</h1>
-            <p className="text-gray-500">Gestisci sopralluoghi, installazioni e riunioni</p>
+            <p className="text-gray-500">
+              {isVenditore 
+                ? "Visualizza i tuoi appuntamenti assegnati"
+                : "Gestisci sopralluoghi, installazioni e riunioni"}
+            </p>
+            {isVenditore && venditoreId && (
+              <p className="text-sm text-blue-600 mt-1">
+                Stai visualizzando solo i tuoi appuntamenti
+              </p>
+            )}
           </div>
           
-          <AppointmentDialog onAddAppointment={handleAddAppointment} />
+          {!isVenditore && (
+            <AppointmentDialog onAddAppointment={handleAddAppointment} />
+          )}
         </div>
         
         <div className="flex flex-col md:flex-row gap-6">
@@ -158,7 +205,8 @@ const Appuntamenti = () => {
               appointments={todayAppointments}
               selectedAppointment={selectedAppointment}
               onSelectAppointment={setSelectedAppointment}
-              onCompleteAppointment={handleCompleteAppointment}
+              onCompleteAppointment={!isVenditore ? handleCompleteAppointment : undefined}
+              readOnly={isVenditore}
             />
           </div>
         </div>
