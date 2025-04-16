@@ -4,12 +4,12 @@ import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
 import { 
   Dialog, 
   DialogContent, 
   DialogHeader, 
-  DialogTitle 
+  DialogTitle,
+  DialogDescription
 } from '@/components/ui/dialog';
 import { PlusCircle, Search } from 'lucide-react';
 import { useUserManagement } from '@/hooks/useUserManagement';
@@ -22,22 +22,14 @@ const Venditori = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const { isAdmin, currentUserProfile } = useUserManagement();
   const { venditori, isLoading, createVenditore, deleteVenditore } = useVenditori();
-  const { toast } = useToast();
 
   const handleSubmit = async (formData: any) => {
     try {
       await createVenditore(formData);
       setOpenDialog(false);
-      toast({
-        title: "Successo",
-        description: "Venditore creato con successo",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Errore",
-        description: error.message,
-        variant: "destructive"
-      });
+    } catch (error) {
+      // L'errore viene già gestito in useVenditori con il toast
+      console.error("Errore durante la creazione del venditore:", error);
     }
   };
 
@@ -89,6 +81,9 @@ const Venditori = () => {
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Nuovo Venditore</DialogTitle>
+            <DialogDescription>
+              Inserisci i dati del nuovo venditore. Il venditore riceverà un'email per confermare il suo account.
+            </DialogDescription>
           </DialogHeader>
           <VenditoreForm
             onSubmit={handleSubmit}

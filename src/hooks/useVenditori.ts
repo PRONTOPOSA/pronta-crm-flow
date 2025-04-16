@@ -48,12 +48,42 @@ export const useVenditori = () => {
 
       if (authError) throw authError;
 
-      // Invalida la query per ricaricare i dati
+      // 2. Verifica che l'utente sia stato creato e aggiorna esplicitamente il profilo
+      // per assicurarsi che il ruolo sia impostato correttamente
+      if (authData.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ 
+            ruolo: 'venditore',
+            nome: formData.nome,
+            cognome: formData.cognome,
+            telefono: formData.telefono 
+          })
+          .eq('id', authData.user.id);
+        
+        if (profileError) {
+          console.error('Errore nell\'aggiornamento del profilo:', profileError);
+          throw profileError;
+        }
+      }
+
+      // 3. Visualizza messaggio di successo
+      toast({
+        title: "Successo",
+        description: "Venditore creato con successo",
+      });
+
+      // 4. Invalida la query per ricaricare i dati
       await queryClient.invalidateQueries({ queryKey: ['venditori'] });
 
       return authData;
     } catch (error: any) {
       console.error('Errore nella creazione del venditore:', error);
+      toast({
+        title: "Errore",
+        description: error.message || 'Errore nella creazione del venditore',
+        variant: "destructive"
+      });
       throw new Error(error.message || 'Errore nella creazione del venditore');
     }
   };
