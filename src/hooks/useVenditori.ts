@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-interface VenditoreFormData {
+export interface VenditoreFormData {
   nome: string;
   cognome: string;
   email: string;
@@ -40,7 +40,8 @@ export const useVenditori = () => {
           data: {
             nome: formData.nome,
             cognome: formData.cognome,
-            ruolo: 'venditore'
+            ruolo: 'venditore',
+            telefono: formData.telefono
           }
         }
       });

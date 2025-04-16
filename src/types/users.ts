@@ -4,6 +4,7 @@ export interface User {
   nome: string;
   cognome: string;
   email: string;
-  ruolo: 'admin' | 'operatore';
+  ruolo: 'admin' | 'operatore' | 'venditore';
   data_creazione: string;
+  telefono?: string;
 }

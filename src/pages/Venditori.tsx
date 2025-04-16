@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
@@ -17,7 +16,7 @@ import {
 } from '@/components/ui/dialog';
 import { PlusCircle, Edit, Trash2, Search } from 'lucide-react';
 import { useUserManagement } from '@/hooks/useUserManagement';
-import { useVenditori } from '@/hooks/useVenditori';
+import { useVenditori, VenditoreFormData } from '@/hooks/useVenditori';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -39,11 +38,18 @@ const Venditori = () => {
   const { toast } = useToast();
   const form = useForm<z.infer<typeof venditoreSchema>>({
     resolver: zodResolver(venditoreSchema),
+    defaultValues: {
+      nome: '',
+      cognome: '',
+      email: '',
+      password: '',
+      telefono: ''
+    }
   });
 
   const onSubmit = async (data: z.infer<typeof venditoreSchema>) => {
     try {
-      await createVenditore(data);
+      await createVenditore(data as VenditoreFormData);
       setOpenDialog(false);
       form.reset();
       toast({
