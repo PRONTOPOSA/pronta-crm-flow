@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -33,17 +32,11 @@ const UserTable = () => {
     promoteToAdmin
   } = useUserManagement();
 
-  // State for delete confirmation dialog
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
-
-  // Stato locale per tenere traccia se è stato promosso di recente
   const [recentlyPromoted, setRecentlyPromoted] = useState(false);
-  
-  // Local state for filtered users to ensure UI updates
   const [filteredUsers, setFilteredUsers] = useState<any[]>([]);
 
-  // Update filtered users when users array changes
   useEffect(() => {
     if (users) {
       const filtered = users.filter(user => user.ruolo !== 'venditore');
@@ -52,11 +45,9 @@ const UserTable = () => {
     }
   }, [users]);
 
-  // Log isAdmin all'inizializzazione e quando cambia
   useEffect(() => {
     console.log("UserTable - isAdmin value:", isAdmin, typeof isAdmin);
     
-    // Se l'utente è diventato admin, registra questo cambiamento
     if (isAdmin && recentlyPromoted) {
       console.log("User is now admin, hiding promotion banner");
       setRecentlyPromoted(false);
@@ -93,23 +84,33 @@ const UserTable = () => {
   const executeDelete = async () => {
     if (userToDelete) {
       try {
-        // Close dialog immediately for better UX
         setDeleteDialog(false);
-        
-        // Remove user from local state for immediate UI feedback
         setFilteredUsers(prev => prev.filter(user => user.id !== userToDelete));
-        
-        // Then perform the actual deletion in the background
         await handleDeleteUser(userToDelete);
-        
-        // Clear the user to delete
         setUserToDelete(null);
       } catch (error) {
         console.error("Error deleting user:", error);
-        // If there's an error, we should refresh the list to restore the correct state
         if (users) {
           setFilteredUsers(users.filter(user => user.ruolo !== 'venditore'));
         }
+      }
+    }
+  };
+
+  const handleRoleUpdateConfirm = async (userId: string) => {
+    try {
+      await handleRoleUpdate(userId);
+      setFilteredUsers(prev => prev.map(user => {
+        if (user.id === userId) {
+          return { ...user, ruolo: editingRoles[userId] || user.ruolo };
+        }
+        return user;
+      }));
+      setEditingUser(null);
+    } catch (error) {
+      console.error("Error updating role:", error);
+      if (users) {
+        setFilteredUsers(users.filter(user => user.ruolo !== 'venditore'));
       }
     }
   };
@@ -141,7 +142,6 @@ const UserTable = () => {
         </div>
       )}
       
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialog} onOpenChange={setDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -193,7 +193,7 @@ const UserTable = () => {
                     <Button 
                       variant="ghost" 
                       size="icon"
-                      onClick={() => handleRoleUpdate(user.id)}
+                      onClick={() => handleRoleUpdateConfirm(user.id)}
                       className="cursor-pointer"
                     >
                       <Check className="h-4 w-4 text-green-600" />
@@ -209,7 +209,6 @@ const UserTable = () => {
                   </div>
                 ) : (
                   <div className="flex justify-end space-x-2">
-                    {/* Sempre mostra i pulsanti per l'amministratore */}
                     {isAdmin && (
                       <>
                         <Button 
