@@ -92,13 +92,25 @@ const UserTable = () => {
 
   const executeDelete = async () => {
     if (userToDelete) {
-      // Remove user from local state immediately for immediate UI feedback
-      setFilteredUsers(prev => prev.filter(user => user.id !== userToDelete));
-      // Close dialog first for better UX
-      setDeleteDialog(false);
-      // Then perform the actual deletion
-      await handleDeleteUser(userToDelete);
-      setUserToDelete(null);
+      try {
+        // Close dialog immediately for better UX
+        setDeleteDialog(false);
+        
+        // Remove user from local state for immediate UI feedback
+        setFilteredUsers(prev => prev.filter(user => user.id !== userToDelete));
+        
+        // Then perform the actual deletion in the background
+        await handleDeleteUser(userToDelete);
+        
+        // Clear the user to delete
+        setUserToDelete(null);
+      } catch (error) {
+        console.error("Error deleting user:", error);
+        // If there's an error, we should refresh the list to restore the correct state
+        if (users) {
+          setFilteredUsers(users.filter(user => user.ruolo !== 'venditore'));
+        }
+      }
     }
   };
 
