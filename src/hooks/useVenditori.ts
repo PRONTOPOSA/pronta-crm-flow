@@ -1,3 +1,4 @@
+
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -31,13 +32,15 @@ export const useVenditori = () => {
 
   const createVenditore = async (formData: VenditoreFormData) => {
     try {
+      // Use maybeSingle() instead of single() to prevent error when no rows are found
       const { data: existingUser, error: searchError } = await supabase
         .from('profiles')
         .select('id, email, ruolo')
         .eq('email', formData.email)
-        .single();
+        .maybeSingle();
 
-      if (searchError && !searchError.message.includes('No rows found')) {
+      // We only throw if it's an actual error, not just "no rows found"
+      if (searchError) {
         throw searchError;
       }
 
@@ -152,7 +155,7 @@ export const useVenditori = () => {
         });
       }
       
-      throw new Error(error.message || 'Errore nella creazione del venditore');
+      throw error;
     }
   };
 
