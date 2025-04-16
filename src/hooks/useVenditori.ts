@@ -1,4 +1,3 @@
-
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import type { VenditoreFormData } from '@/types/venditori';
@@ -40,7 +39,7 @@ export const useVenditori = () => {
         return;
       }
 
-      // Create new user with venditore role
+      // Create new user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -48,7 +47,7 @@ export const useVenditori = () => {
           data: {
             nome: formData.nome,
             cognome: formData.cognome,
-            ruolo: 'venditore'
+            ruolo: 'venditore' // Set initial role
           }
         }
       });
@@ -56,16 +55,15 @@ export const useVenditori = () => {
       if (authError) throw authError;
 
       if (authData.user) {
-        await updateUserRole(authData.user.id);
+        // Create vendor record and update role
         await ensureVenditoreRecord(authData.user.id);
-        
-        console.log('Created new vendor record with ID:', authData.user.id);
         
         toast({
           title: "Successo",
           description: "Venditore creato con successo",
         });
 
+        // Refresh the vendors list
         await queryClient.invalidateQueries({ queryKey: ['venditori'] });
       }
     } catch (error: any) {
