@@ -1,4 +1,3 @@
-
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -32,20 +31,17 @@ export const useVenditori = () => {
 
   const createVenditore = async (formData: VenditoreFormData) => {
     try {
-      // Prima verifichiamo se l'utente esiste già
       const { data: existingUser, error: searchError } = await supabase
         .from('profiles')
-        .select('id, email, ruolo')  // Include 'ruolo' in the query
+        .select('id, email, ruolo')
         .eq('email', formData.email)
         .single();
 
       if (searchError && !searchError.message.includes('No rows found')) {
-        // Se c'è un errore diverso da "No rows found", lo gestiamo
         throw searchError;
       }
 
       if (existingUser) {
-        // Utente già esistente, verifichiamo se è già un venditore
         if (existingUser.ruolo === 'venditore') {
           toast({
             title: "Utente già registrato",
@@ -55,7 +51,6 @@ export const useVenditori = () => {
           return;
         }
 
-        // Aggiorniamo il ruolo dell'utente esistente a venditore
         const { error: updateError } = await supabase
           .from('profiles')
           .update({ ruolo: 'venditore' })
@@ -68,12 +63,10 @@ export const useVenditori = () => {
           description: "L'utente esistente è stato convertito a venditore.",
         });
 
-        // Invalida la query per ricaricare i dati
         await queryClient.invalidateQueries({ queryKey: ['venditori'] });
         return;
       }
 
-      // Se l'utente non esiste, procediamo con la creazione
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -89,21 +82,16 @@ export const useVenditori = () => {
 
       if (authError) throw authError;
 
-      // Verifica che l'utente sia stato creato e aggiorna esplicitamente il profilo
       if (authData.user) {
-        // Prima aggiungiamo la colonna telefono se non esiste
         try {
-          // Nota: questo è un controllo per vedere se la colonna telefono esiste già
           const { error: columnCheckError } = await supabase
             .from('profiles')
             .select('telefono')
             .limit(1);
 
-          // Se c'è un errore nel selezionare la colonna telefono, probabilmente non esiste
           if (columnCheckError && columnCheckError.message.includes('column "telefono" does not exist')) {
             console.log('La colonna telefono non esiste. Utilizziamo solo i campi esistenti.');
             
-            // Aggiorniamo solo i campi che sappiamo esistere
             const { error: profileError } = await supabase
               .from('profiles')
               .update({ 
@@ -118,7 +106,6 @@ export const useVenditori = () => {
               throw profileError;
             }
           } else {
-            // La colonna telefono esiste, aggiorniamo tutti i campi
             const { error: profileError } = await supabase
               .from('profiles')
               .update({ 
@@ -140,20 +127,17 @@ export const useVenditori = () => {
         }
       }
 
-      // Visualizza messaggio di successo
       toast({
         title: "Successo",
         description: "Venditore creato con successo",
       });
 
-      // Invalida la query per ricaricare i dati
       await queryClient.invalidateQueries({ queryKey: ['venditori'] });
 
       return authData;
     } catch (error: any) {
       console.error('Errore nella creazione del venditore:', error);
       
-      // Gestione specifica per l'errore "User already registered"
       if (error.message === "User already registered" || error.code === "user_already_exists") {
         toast({
           title: "Utente già registrato",
@@ -181,7 +165,6 @@ export const useVenditori = () => {
 
       if (error) throw error;
 
-      // Invalida la query per ricaricare i dati
       await queryClient.invalidateQueries({ queryKey: ['venditori'] });
 
       toast({
