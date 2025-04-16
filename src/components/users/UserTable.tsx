@@ -1,63 +1,24 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2, Check, X } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { toast } from '@/components/ui/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
-
-interface User {
-  id: string;
-  nome: string;
-  cognome: string;
-  email: string;
-  ruolo: 'admin' | 'operatore';
-  data_creazione: string;
-}
+import { Edit, Check, X } from 'lucide-react';
+import { UserRoleSelect } from './UserRoleSelect';
+import { UserTableLoading } from './UserTableLoading';
+import { useUserManagement } from '@/hooks/useUserManagement';
 
 const UserTable = () => {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const [editingUser, setEditingUser] = useState<string | null>(null);
-  const [editingRoles, setEditingRoles] = useState<Record<string, 'admin' | 'operatore'>>({});
-
-  const { data: currentUserProfile } = useQuery({
-    queryKey: ['currentUserProfile'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user?.id)
-        .single();
-      
-      if (error) throw error;
-      return data as User;
-    }
-  });
-
-  const isAdmin = currentUserProfile?.ruolo === 'admin';
-
-  const { data: users, isLoading } = useQuery({
-    queryKey: ['users'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('data_creazione', { ascending: false });
-      
-      if (error) throw error;
-      return data as User[];
-    }
-  });
+  const {
+    users,
+    isLoading,
+    editingUser,
+    editingRoles,
+    isAdmin,
+    handleEditStart,
+    handleRoleChange,
+    handleRoleUpdate,
+    setEditingUser
+  } = useUserManagement();
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '';
@@ -66,66 +27,6 @@ const UserTable = () => {
       month: '2-digit',
       year: 'numeric'
     });
-  };
-
-  const handleEditStart = (user: User) => {
-    setEditingUser(user.id);
-    // Inizializza lo stato di modifica con il ruolo attuale dell'utente
-    setEditingRoles(prev => ({
-      ...prev,
-      [user.id]: user.ruolo
-    }));
-  };
-
-  const handleRoleChange = (userId: string, role: 'admin' | 'operatore') => {
-    setEditingRoles(prev => ({
-      ...prev,
-      [userId]: role
-    }));
-  };
-
-  const handleRoleUpdate = async (userId: string) => {
-    if (!isAdmin) {
-      toast({
-        title: "Accesso negato",
-        description: "Solo gli amministratori possono modificare i ruoli degli utenti.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const newRole = editingRoles[userId];
-    if (!newRole) {
-      toast({
-        title: "Errore",
-        description: "Ruolo non selezionato.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ ruolo: newRole })
-        .eq('id', userId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Ruolo aggiornato",
-        description: "Il ruolo dell'utente è stato aggiornato con successo.",
-      });
-
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      setEditingUser(null);
-    } catch (error: any) {
-      toast({
-        title: "Errore",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
   };
 
   const getRoleLabel = (role: string) => {
@@ -137,12 +38,7 @@ const UserTable = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center p-4">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        <span className="ml-3">Caricamento...</span>
-      </div>
-    );
+    return <UserTableLoading />;
   }
 
   return (
@@ -166,18 +62,10 @@ const UserTable = () => {
               <TableCell>{user.email}</TableCell>
               <TableCell>
                 {editingUser === user.id ? (
-                  <Select
-                    value={editingRoles[user.id]}
-                    onValueChange={(value: 'admin' | 'operatore') => handleRoleChange(user.id, value)}
-                  >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Seleziona ruolo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="admin">Amministratore</SelectItem>
-                      <SelectItem value="operatore">Operatore</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <UserRoleSelect
+                    currentRole={editingRoles[user.id]}
+                    onRoleChange={(role) => handleRoleChange(user.id, role)}
+                  />
                 ) : (
                   <span className="capitalize">{getRoleLabel(user.ruolo)}</span>
                 )}
