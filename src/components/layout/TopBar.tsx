@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Bell, Search, Menu, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from '@/components/ui/button';
@@ -12,8 +12,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useNavigate } from 'react-router-dom';
+import { toast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const TopBar = () => {
+  const navigate = useNavigate();
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  
   // Demo user profile
   const profile = {
     nome: "Mario",
@@ -38,9 +44,38 @@ const TopBar = () => {
     return `${profile.nome.charAt(0)}${profile.cognome.charAt(0)}`;
   };
 
-  const handleLogout = () => {
-    console.log("Logout clicked");
-    // In a real app, this would handle logout
+  const handleLogout = async () => {
+    try {
+      // Se utilizzi Supabase auth, usa il metodo signOut
+      // await supabase.auth.signOut();
+      
+      // Per demo, semplicemente mostra un toast di conferma
+      toast({
+        title: "Logout effettuato",
+        description: "Sei stato disconnesso con successo.",
+      });
+      
+      console.log("Logout clicked");
+      // In una applicazione reale, qui redirigeresti alla pagina di login
+      // navigate('/login');
+    } catch (error) {
+      console.error("Errore durante il logout:", error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore durante il logout.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleNotificationClick = () => {
+    setNotificationsOpen(!notificationsOpen);
+    
+    // Per demo, mostriamo un toast quando si clicca sul pulsante delle notifiche
+    toast({
+      title: "Notifiche",
+      description: "Hai 3 nuove notifiche non lette.",
+    });
   };
 
   return (
@@ -63,7 +98,12 @@ const TopBar = () => {
       </div>
       
       <div className="flex items-center space-x-4">
-        <Button variant="ghost" size="icon" className="relative text-gray-500">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="relative text-gray-500"
+          onClick={handleNotificationClick}
+        >
           <Bell size={20} />
           <span className="absolute top-0 right-0 bg-secondary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
             3

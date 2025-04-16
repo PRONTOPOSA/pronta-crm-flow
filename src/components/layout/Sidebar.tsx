@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Users, 
@@ -12,12 +13,39 @@ import {
   UserCircle,
   UsersIcon
 } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const Sidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   // Define static roles for demonstration purposes
   const isAdmin = true; // For demo, we'll show all admin features
   const isVenditore = true; // For demo, we'll show all vendor features
+
+  const handleLogout = async () => {
+    try {
+      // Se utilizzi Supabase auth, usa il metodo signOut
+      // await supabase.auth.signOut();
+      
+      // Per demo, semplicemente mostra un toast di conferma
+      toast({
+        title: "Logout effettuato",
+        description: "Sei stato disconnesso con successo.",
+      });
+      
+      console.log("Logout clicked");
+      // In una applicazione reale, qui redirigeresti alla pagina di login
+      // navigate('/login');
+    } catch (error) {
+      console.error("Errore durante il logout:", error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore durante il logout.",
+        variant: "destructive"
+      });
+    }
+  };
 
   return (
     <div className="h-screen w-64 bg-primary text-white flex flex-col shadow-lg hidden md:flex">
@@ -41,7 +69,10 @@ const Sidebar = () => {
       <div className="p-4 border-t border-blue-800">
         <ul className="space-y-1 px-2">
           <SidebarItem to="/impostazioni" icon={<Settings size={20} />} label="Impostazioni" active={location.pathname === '/impostazioni'} />
-          <li className="flex items-center px-4 py-2 text-gray-300 hover:bg-blue-800 hover:text-white rounded-md cursor-pointer transition-colors">
+          <li 
+            className="flex items-center px-4 py-2 text-gray-300 hover:bg-blue-800 hover:text-white rounded-md cursor-pointer transition-colors"
+            onClick={handleLogout}
+          >
             <LogOut size={20} className="mr-3" />
             <span>Logout</span>
           </li>
