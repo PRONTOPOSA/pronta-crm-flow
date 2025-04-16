@@ -20,6 +20,9 @@ export const VenditoriTable = ({
   onDelete,
   searchQuery
 }: VenditoriTableProps) => {
+  // Log all vendors to debug what's coming in
+  console.log('Rendering VenditoriTable with data:', venditori);
+
   const filteredVenditori = venditori.filter(venditore => 
     venditore.nome.toLowerCase().includes(searchQuery.toLowerCase()) ||
     venditore.cognome.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -33,17 +36,18 @@ export const VenditoriTable = ({
           <TableHead>Nome</TableHead>
           <TableHead>Cognome</TableHead>
           <TableHead>Email</TableHead>
+          <TableHead>Ruolo</TableHead>
           <TableHead className="text-right">Azioni</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {isLoading ? (
           <TableRow>
-            <TableCell colSpan={4} className="text-center py-4">Caricamento...</TableCell>
+            <TableCell colSpan={5} className="text-center py-4">Caricamento...</TableCell>
           </TableRow>
         ) : filteredVenditori.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={4} className="text-center py-4">
+            <TableCell colSpan={5} className="text-center py-4">
               {searchQuery ? 'Nessun venditore corrisponde alla ricerca' : 'Nessun venditore disponibile'}
             </TableCell>
           </TableRow>
@@ -53,6 +57,7 @@ export const VenditoriTable = ({
               <TableCell>{venditore.nome}</TableCell>
               <TableCell>{venditore.cognome}</TableCell>
               <TableCell>{venditore.email}</TableCell>
+              <TableCell>Venditore</TableCell>
               <TableCell className="text-right">
                 {isAdmin && (
                   <Button 

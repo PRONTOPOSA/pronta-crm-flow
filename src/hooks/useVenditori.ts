@@ -9,7 +9,6 @@ export interface VenditoreFormData {
   cognome: string;
   email: string;
   password: string;
-  telefono?: string;
 }
 
 export const useVenditori = () => {
@@ -26,12 +25,20 @@ export const useVenditori = () => {
         .order('data_creazione', { ascending: false });
 
       if (error) throw error;
+      console.log('Venditori fetched:', data);
       return (data || []) as User[];
     }
   });
 
   const createVenditore = async (formData: VenditoreFormData) => {
     try {
+      console.log('Attempting to create venditore with data:', {
+        email: formData.email,
+        password: '[HIDDEN]',
+        nome: formData.nome,
+        cognome: formData.cognome
+      });
+
       // Controllo se l'utente esiste già
       const { data: existingUser, error: searchError } = await supabase
         .from('profiles')
@@ -67,6 +74,27 @@ export const useVenditori = () => {
           throw updateError;
         }
 
+        // Ensure the user is also in the venditori table
+        const { data: venditoreExists, error: checkVenditoreError } = await supabase
+          .from('venditori')
+          .select('id')
+          .eq('user_id', existingUser.id)
+          .maybeSingle();
+          
+        if (checkVenditoreError) {
+          console.error('Errore nel controllo venditore:', checkVenditoreError);
+        }
+        
+        if (!venditoreExists) {
+          const { error: insertVenditoreError } = await supabase
+            .from('venditori')
+            .insert({ user_id: existingUser.id });
+            
+          if (insertVenditoreError) {
+            console.error('Errore nell\'inserimento venditore:', insertVenditoreError);
+          }
+        }
+
         toast({
           title: "Ruolo aggiornato",
           description: "L'utente esistente è stato convertito a venditore.",
@@ -75,13 +103,6 @@ export const useVenditori = () => {
         await queryClient.invalidateQueries({ queryKey: ['venditori'] });
         return;
       }
-
-      console.log('Creazione nuovo utente con dati:', {
-        email: formData.email,
-        password: '[HIDDEN]',
-        nome: formData.nome,
-        cognome: formData.cognome
-      });
 
       // Creazione nuovo utente
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -105,6 +126,7 @@ export const useVenditori = () => {
 
       // Assicuriamoci che il profilo sia stato creato correttamente
       if (authData.user) {
+        // Forziamo l'aggiornamento del ruolo a 'venditore'
         const { error: profileError } = await supabase
           .from('profiles')
           .update({ 
@@ -128,18 +150,18 @@ export const useVenditori = () => {
 
         if (checkError) {
           console.error('Errore nel controllo venditore:', checkError);
-          // Non blocchiamo il flusso per questo errore
         }
 
         // Se il venditore non esiste nella tabella venditori, crealo
         if (!venditoreEsistente) {
+          console.log('Inserimento nella tabella venditori, user_id:', authData.user.id);
           const { error: insertError } = await supabase
             .from('venditori')
             .insert({ user_id: authData.user.id });
 
           if (insertError) {
             console.error('Errore nell\'inserimento venditore:', insertError);
-            // Non blocchiamo il flusso per questo errore
+            throw insertError;
           }
         }
       }
@@ -175,6 +197,17 @@ export const useVenditori = () => {
 
   const deleteVenditore = async (userId: string) => {
     try {
+      // First delete from venditori table
+      const { error: deleteVenditoreError } = await supabase
+        .from('venditori')
+        .delete()
+        .eq('user_id', userId);
+
+      if (deleteVenditoreError) {
+        console.error('Errore nell\'eliminazione del venditore:', deleteVenditoreError);
+      }
+
+      // Then delete from profiles
       const { error } = await supabase
         .from('profiles')
         .delete()

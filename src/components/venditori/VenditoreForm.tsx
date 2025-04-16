@@ -20,8 +20,7 @@ const venditoreSchema = z.object({
   nome: z.string().min(2, { message: 'Il nome deve avere almeno 2 caratteri' }),
   cognome: z.string().min(2, { message: 'Il cognome deve avere almeno 2 caratteri' }),
   email: z.string().email({ message: 'Email non valida' }),
-  password: z.string().min(6, { message: 'La password deve avere almeno 6 caratteri' }),
-  telefono: z.string().optional()
+  password: z.string().min(6, { message: 'La password deve avere almeno 6 caratteri' })
 });
 
 type VenditoreFormProps = {
@@ -36,8 +35,7 @@ export const VenditoreForm = ({ onSubmit, onCancel }: VenditoreFormProps) => {
       nome: '',
       cognome: '',
       email: '',
-      password: '',
-      telefono: ''
+      password: ''
     }
   });
 
@@ -93,19 +91,6 @@ export const VenditoreForm = ({ onSubmit, onCancel }: VenditoreFormProps) => {
               <FormLabel>Password</FormLabel>
               <FormControl>
                 <Input type="password" placeholder="Password" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="telefono"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Telefono</FormLabel>
-              <FormControl>
-                <Input placeholder="Telefono" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
