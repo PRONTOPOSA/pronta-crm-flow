@@ -16,7 +16,7 @@ export type Database = {
           email: string
           id: string
           nome: string
-          ruolo: Database["public"]["Enums"]["user_role"]
+          ruolo: string
           user_id: string
         }
         Insert: {
@@ -25,7 +25,7 @@ export type Database = {
           email: string
           id: string
           nome: string
-          ruolo?: Database["public"]["Enums"]["user_role"]
+          ruolo?: string
           user_id: string
         }
         Update: {
@@ -34,7 +34,7 @@ export type Database = {
           email?: string
           id?: string
           nome?: string
-          ruolo?: Database["public"]["Enums"]["user_role"]
+          ruolo?: string
           user_id?: string
         }
         Relationships: []

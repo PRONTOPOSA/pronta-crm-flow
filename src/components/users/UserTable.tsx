@@ -1,21 +1,33 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, Check, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { toast } from '@/components/ui/use-toast';
 
 interface User {
   id: string;
   nome: string;
   cognome: string;
   email: string;
-  ruolo: 'admin' | 'venditore' | 'operatore';
+  ruolo: 'admin' | 'operatore';
   data_creazione: string;
 }
 
 const UserTable = () => {
+  const queryClient = useQueryClient();
+  const [editingUser, setEditingUser] = useState<string | null>(null);
+  const [selectedRole, setSelectedRole] = useState<'admin' | 'operatore'>('operatore');
+
   const { data: users, isLoading } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
@@ -29,6 +41,32 @@ const UserTable = () => {
     }
   });
 
+  const handleRoleUpdate = async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ ruolo: selectedRole })
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Ruolo aggiornato",
+        description: "Il ruolo dell'utente è stato aggiornato con successo.",
+      });
+
+      // Refresh the users data
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setEditingUser(null);
+    } catch (error: any) {
+      toast({
+        title: "Errore",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '';
     return new Date(dateString).toLocaleDateString('it-IT', {
@@ -41,14 +79,18 @@ const UserTable = () => {
   const getRoleLabel = (role: string) => {
     switch (role) {
       case 'admin': return 'Amministratore';
-      case 'venditore': return 'Venditore';
       case 'operatore': return 'Operatore';
       default: return role;
     }
   };
 
   if (isLoading) {
-    return <div>Caricamento...</div>;
+    return (
+      <div className="flex items-center justify-center p-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <span className="ml-3">Caricamento...</span>
+      </div>
+    );
   }
 
   return (
@@ -70,15 +112,57 @@ const UserTable = () => {
               <TableCell>{user.nome}</TableCell>
               <TableCell>{user.cognome}</TableCell>
               <TableCell>{user.email}</TableCell>
-              <TableCell className="capitalize">{getRoleLabel(user.ruolo)}</TableCell>
-              <TableCell>{user.data_creazione ? formatDate(user.data_creazione) : ''}</TableCell>
-              <TableCell className="text-right">
-                <Button variant="ghost" size="icon">
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="text-destructive">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+              <TableCell>
+                {editingUser === user.id ? (
+                  <Select
+                    value={selectedRole}
+                    onValueChange={(value: 'admin' | 'operatore') => setSelectedRole(value)}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Seleziona ruolo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="admin">Amministratore</SelectItem>
+                      <SelectItem value="operatore">Operatore</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <span className="capitalize">{getRoleLabel(user.ruolo)}</span>
+                )}
+              </TableCell>
+              <TableCell>{formatDate(user.data_creazione)}</TableCell>
+              <TableCell className="text-right space-x-2">
+                {editingUser === user.id ? (
+                  <>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => handleRoleUpdate(user.id)}
+                    >
+                      <Check className="h-4 w-4 text-green-600" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => setEditingUser(null)}
+                    >
+                      <X className="h-4 w-4 text-red-600" />
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => {
+                        setSelectedRole(user.ruolo);
+                        setEditingUser(user.id);
+                      }}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
               </TableCell>
             </TableRow>
           ))}
