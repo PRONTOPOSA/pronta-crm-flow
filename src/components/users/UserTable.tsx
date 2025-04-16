@@ -114,6 +114,7 @@ const UserTable = () => {
                         handleEditStart(user);
                       }}
                       disabled={!isAdmin}
+                      className="cursor-pointer"
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -125,6 +126,7 @@ const UserTable = () => {
                         handleDeleteUser(user.id);
                       }}
                       disabled={!isAdmin}
+                      className="cursor-pointer"
                     >
                       <Trash2 className="h-4 w-4 text-red-600" />
                     </Button>

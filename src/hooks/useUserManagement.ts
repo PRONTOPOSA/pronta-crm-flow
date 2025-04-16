@@ -41,7 +41,8 @@ export const useUserManagement = () => {
       }
       console.log('Current user profile:', data);
       return data as User;
-    }
+    },
+    enabled: !!user?.id // Only run this query if we have a user ID
   });
 
   const { data: users, isLoading: isUsersLoading } = useQuery({
