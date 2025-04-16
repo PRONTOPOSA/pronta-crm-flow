@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,13 +23,18 @@ export const useUserManagement = () => {
   const { data: currentUserProfile } = useQuery({
     queryKey: ['currentUserProfile'],
     queryFn: async () => {
+      console.log('Fetching current user profile');
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user?.id)
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching current user profile:', error);
+        throw error;
+      }
+      console.log('Current user profile:', data);
       return data as User;
     }
   });
@@ -36,17 +42,23 @@ export const useUserManagement = () => {
   const { data: users, isLoading } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
+      console.log('Fetching users');
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .order('data_creazione', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching users:', error);
+        throw error;
+      }
+      console.log('Fetched users:', data);
       return data as User[];
     }
   });
 
   const handleEditStart = (user: User) => {
+    console.log('Starting edit for user:', user);
     setEditingUser(user.id);
     setEditingRoles(prev => ({
       ...prev,
@@ -55,7 +67,7 @@ export const useUserManagement = () => {
   };
 
   const handleRoleChange = (userId: string, role: 'admin' | 'operatore') => {
-    console.log('Changing role for user', userId, 'to', role);
+    console.log(`Changing role for user ${userId} to ${role}`);
     setEditingRoles(prev => ({
       ...prev,
       [userId]: role
@@ -64,6 +76,8 @@ export const useUserManagement = () => {
 
   const handleRoleUpdate = async (userId: string) => {
     const isAdmin = currentUserProfile?.ruolo === 'admin';
+    console.log(`Attempting to update role for user ${userId}. Admin status: ${isAdmin}`);
+
     if (!isAdmin) {
       toast({
         title: "Accesso negato",
@@ -74,6 +88,8 @@ export const useUserManagement = () => {
     }
 
     const newRole = editingRoles[userId];
+    console.log(`New role for user ${userId}: ${newRole}`);
+
     if (!newRole) {
       toast({
         title: "Errore",
@@ -84,7 +100,7 @@ export const useUserManagement = () => {
     }
 
     try {
-      console.log('Updating role in database:', userId, newRole);
+      console.log(`Updating role in database for user ${userId} to ${newRole}`);
       const { error } = await supabase
         .from('profiles')
         .update({ ruolo: newRole })
@@ -98,6 +114,7 @@ export const useUserManagement = () => {
           u.id === userId ? { ...u, ruolo: newRole } : u
         );
         queryClient.setQueryData(['users'], updatedUsers);
+        console.log('Updated users array:', updatedUsers);
       }
 
       toast({

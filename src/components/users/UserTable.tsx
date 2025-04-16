@@ -42,6 +42,11 @@ const UserTable = () => {
     return <UserTableLoading />;
   }
 
+  console.log('UserTable - Users:', users);
+  console.log('UserTable - isAdmin:', isAdmin);
+  console.log('UserTable - editingUser:', editingUser);
+  console.log('UserTable - editingRoles:', editingRoles);
+
   return (
     <div>
       <Table>
@@ -65,7 +70,10 @@ const UserTable = () => {
                 {editingUser === user.id ? (
                   <UserRoleSelect
                     currentRole={editingRoles[user.id] || user.ruolo}
-                    onRoleChange={(role) => handleRoleChange(user.id, role)}
+                    onRoleChange={(role) => {
+                      console.log(`Changing role for user ${user.id} to ${role}`);
+                      handleRoleChange(user.id, role);
+                    }}
                   />
                 ) : (
                   <span className="capitalize">{getRoleLabel(user.ruolo)}</span>
@@ -78,14 +86,20 @@ const UserTable = () => {
                     <Button 
                       variant="ghost" 
                       size="icon"
-                      onClick={() => handleRoleUpdate(user.id)}
+                      onClick={() => {
+                        console.log(`Updating role for user ${user.id}`);
+                        handleRoleUpdate(user.id);
+                      }}
                     >
                       <Check className="h-4 w-4 text-green-600" />
                     </Button>
                     <Button 
                       variant="ghost" 
                       size="icon"
-                      onClick={() => setEditingUser(null)}
+                      onClick={() => {
+                        console.log(`Cancelling role edit for user ${user.id}`);
+                        setEditingUser(null);
+                      }}
                     >
                       <X className="h-4 w-4 text-red-600" />
                     </Button>
@@ -96,14 +110,20 @@ const UserTable = () => {
                       <Button 
                         variant="ghost" 
                         size="icon"
-                        onClick={() => handleEditStart(user)}
+                        onClick={() => {
+                          console.log(`Starting edit for user ${user.id}`);
+                          handleEditStart(user);
+                        }}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button 
                         variant="ghost" 
                         size="icon"
-                        onClick={() => handleDeleteUser(user.id)}
+                        onClick={() => {
+                          console.log(`Deleting user ${user.id}`);
+                          handleDeleteUser(user.id);
+                        }}
                       >
                         <Trash2 className="h-4 w-4 text-red-600" />
                       </Button>
@@ -120,4 +140,3 @@ const UserTable = () => {
 };
 
 export default UserTable;
-
