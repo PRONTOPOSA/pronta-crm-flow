@@ -85,14 +85,11 @@ const UserTable = () => {
     if (userToDelete) {
       try {
         await handleDeleteUser(userToDelete);
-        setFilteredUsers(prev => prev.filter(user => user.id !== userToDelete));
+        setFilteredUsers(prevUsers => prevUsers.filter(user => user.id !== userToDelete));
         setUserToDelete(null);
         setDeleteDialog(false);
       } catch (error) {
         console.error("Error deleting user:", error);
-        if (users) {
-          setFilteredUsers(users.filter(user => user.ruolo !== 'venditore'));
-        }
         setDeleteDialog(false);
       }
     }
