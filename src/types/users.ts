@@ -7,4 +7,5 @@ export interface User {
   ruolo: 'admin' | 'operatore' | 'venditore';
   data_creazione: string;
   telefono?: string;
+  user_id?: string;
 }

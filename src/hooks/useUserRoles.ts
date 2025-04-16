@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
@@ -8,7 +7,7 @@ import type { User } from '@/types/users';
 export const useUserRoles = (isAdmin: boolean) => {
   const queryClient = useQueryClient();
   const [editingUser, setEditingUser] = useState<string | null>(null);
-  const [editingRoles, setEditingRoles] = useState<Record<string, 'admin' | 'operatore'>>({});
+  const [editingRoles, setEditingRoles] = useState<Record<string, 'admin' | 'operatore' | 'venditore'>>({});
 
   // Log quando isAdmin cambia
   useEffect(() => {
@@ -36,7 +35,7 @@ export const useUserRoles = (isAdmin: boolean) => {
     }));
   };
 
-  const handleRoleChange = (userId: string, role: 'admin' | 'operatore') => {
+  const handleRoleChange = (userId: string, role: 'admin' | 'operatore' | 'venditore') => {
     console.log(`Changing role for user ${userId} to ${role}`);
     setEditingRoles(prev => ({
       ...prev,
