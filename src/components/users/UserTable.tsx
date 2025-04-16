@@ -105,30 +105,30 @@ const UserTable = () => {
                     </Button>
                   </>
                 ) : (
-                  isAdmin && (
-                    <>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => {
-                          console.log(`Starting edit for user ${user.id}`);
-                          handleEditStart(user);
-                        }}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => {
-                          console.log(`Deleting user ${user.id}`);
-                          handleDeleteUser(user.id);
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-600" />
-                      </Button>
-                    </>
-                  )
+                  <>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => {
+                        console.log(`Starting edit for user ${user.id}`);
+                        handleEditStart(user);
+                      }}
+                      disabled={!isAdmin}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => {
+                        console.log(`Deleting user ${user.id}`);
+                        handleDeleteUser(user.id);
+                      }}
+                      disabled={!isAdmin}
+                    >
+                      <Trash2 className="h-4 w-4 text-red-600" />
+                    </Button>
+                  </>
                 )}
               </TableCell>
             </TableRow>
