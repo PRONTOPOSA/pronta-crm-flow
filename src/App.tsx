@@ -1,8 +1,12 @@
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthGuard } from "@/components/auth/AuthGuard";
+import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Contatti from "./pages/Contatti";
 import Appuntamenti from "./pages/Appuntamenti";
@@ -22,19 +26,22 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/contatti" element={<Contatti />} />
-          <Route path="/appuntamenti" element={<Appuntamenti />} />
-          <Route path="/progetti" element={<Progetti />} />
-          <Route path="/venditori" element={<Venditori />} />
-          <Route path="/impostazioni" element={<Impostazioni />} />
-          <Route path="/comunicazioni" element={<Comunicazioni />} />
-          <Route path="/reportistica" element={<Reportistica />} />
-          <Route path="/users" element={<UserManagement />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/" element={<AuthGuard><Navigate to="/dashboard" replace /></AuthGuard>} />
+            <Route path="/dashboard" element={<AuthGuard><Dashboard /></AuthGuard>} />
+            <Route path="/contatti" element={<AuthGuard><Contatti /></AuthGuard>} />
+            <Route path="/appuntamenti" element={<AuthGuard><Appuntamenti /></AuthGuard>} />
+            <Route path="/progetti" element={<AuthGuard><Progetti /></AuthGuard>} />
+            <Route path="/venditori" element={<AuthGuard><Venditori /></AuthGuard>} />
+            <Route path="/impostazioni" element={<AuthGuard><Impostazioni /></AuthGuard>} />
+            <Route path="/comunicazioni" element={<AuthGuard><Comunicazioni /></AuthGuard>} />
+            <Route path="/reportistica" element={<AuthGuard><Reportistica /></AuthGuard>} />
+            <Route path="/users" element={<AuthGuard><UserManagement /></AuthGuard>} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

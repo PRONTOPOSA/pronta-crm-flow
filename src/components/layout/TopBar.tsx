@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Bell, Search, Menu, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -12,53 +11,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 const TopBar = () => {
-  const navigate = useNavigate();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const { user, signOut } = useAuth();
   
-  // Demo user profile
-  const profile = {
-    nome: "Mario",
-    cognome: "Rossi",
-    email: "mario.rossi@example.com"
-  };
-  
-  // Define static roles for demo
-  const isAdmin = true;
-  const isVenditore = false;
-  const isOperatore = false;
-
-  const getRoleName = () => {
-    if (isAdmin) return "Amministratore";
-    if (isVenditore) return "Venditore";
-    if (isOperatore) return "Operatore";
-    return "Utente";
-  };
-
-  const getInitials = () => {
-    if (!profile) return "U";
-    return `${profile.nome.charAt(0)}${profile.cognome.charAt(0)}`;
-  };
-
   const handleLogout = async () => {
     try {
-      // Se utilizzi Supabase auth, usa il metodo signOut
-      // await supabase.auth.signOut();
-      
-      // Per demo, semplicemente mostra un toast di conferma
+      await signOut();
       toast({
         title: "Logout effettuato",
         description: "Sei stato disconnesso con successo.",
       });
-      
-      console.log("Logout clicked");
-      // In una applicazione reale, qui redirigeresti alla pagina di login
-      // navigate('/login');
-    } catch (error) {
+    } catch (error: any) {
       console.error("Errore durante il logout:", error);
       toast({
         title: "Errore",
@@ -116,7 +83,9 @@ const TopBar = () => {
               <Button variant="ghost" className="relative h-9 w-9 rounded-full">
                 <Avatar className="h-9 w-9">
                   <AvatarImage src="" />
-                  <AvatarFallback className="bg-primary text-white">{getInitials()}</AvatarFallback>
+                  <AvatarFallback className="bg-primary text-white">
+                    {user?.email?.charAt(0).toUpperCase()}
+                  </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
@@ -124,20 +93,10 @@ const TopBar = () => {
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">
-                    {profile ? `${profile.nome} ${profile.cognome}` : "Utente"}
-                  </p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {profile?.email}
+                    {user?.email}
                   </p>
                 </div>
               </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                Profilo
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                {getRoleName()}
-              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout} className="text-red-600">
                 <LogOut className="mr-2 h-4 w-4" />
@@ -145,13 +104,6 @@ const TopBar = () => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          
-          <div className="ml-3 hidden md:block">
-            <p className="text-sm font-medium">
-              {profile ? `${profile.nome} ${profile.cognome}` : "Utente"}
-            </p>
-            <p className="text-xs text-gray-500">{getRoleName()}</p>
-          </div>
         </div>
       </div>
     </header>
