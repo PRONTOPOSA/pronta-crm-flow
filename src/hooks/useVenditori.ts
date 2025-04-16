@@ -52,7 +52,6 @@ export const useVenditori = () => {
         });
       } else {
         // Create new user with a default password
-        // We're using signUp even though they won't actually use the account directly
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
