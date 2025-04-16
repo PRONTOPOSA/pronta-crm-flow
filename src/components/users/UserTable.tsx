@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -41,6 +42,8 @@ const UserTable = () => {
     return <UserTableLoading />;
   }
 
+  console.log("Current admin status:", isAdmin);
+
   return (
     <div>
       <Table>
@@ -55,7 +58,7 @@ const UserTable = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {users?.map((user) => (
+          {users.map((user) => (
             <TableRow key={user.id}>
               <TableCell>{user.nome}</TableCell>
               <TableCell>{user.cognome}</TableCell>
@@ -71,13 +74,14 @@ const UserTable = () => {
                 )}
               </TableCell>
               <TableCell>{formatDate(user.data_creazione)}</TableCell>
-              <TableCell className="text-right space-x-2">
+              <TableCell className="text-right">
                 {editingUser === user.id ? (
-                  <>
+                  <div className="flex justify-end space-x-2">
                     <Button 
                       variant="ghost" 
                       size="icon"
                       onClick={() => handleRoleUpdate(user.id)}
+                      className="cursor-pointer"
                     >
                       <Check className="h-4 w-4 text-green-600" />
                     </Button>
@@ -85,18 +89,20 @@ const UserTable = () => {
                       variant="ghost" 
                       size="icon"
                       onClick={() => setEditingUser(null)}
+                      className="cursor-pointer"
                     >
                       <X className="h-4 w-4 text-red-600" />
                     </Button>
-                  </>
+                  </div>
                 ) : (
-                  <>
-                    {isAdmin && (
+                  <div className="flex justify-end space-x-2">
+                    {isAdmin === true && (
                       <>
                         <Button 
                           variant="ghost" 
                           size="icon"
                           onClick={() => handleEditStart(user)}
+                          className="cursor-pointer"
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -104,12 +110,13 @@ const UserTable = () => {
                           variant="ghost" 
                           size="icon"
                           onClick={() => handleDeleteUser(user.id)}
+                          className="cursor-pointer"
                         >
                           <Trash2 className="h-4 w-4 text-red-600" />
                         </Button>
                       </>
                     )}
-                  </>
+                  </div>
                 )}
               </TableCell>
             </TableRow>

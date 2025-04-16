@@ -50,6 +50,8 @@ export const useUserManagement = () => {
   });
 
   const isAdmin = currentUserProfile?.ruolo === 'admin';
+  console.log('Current user is admin:', isAdmin);
+  
   const roleManagement = useUserRoles(isAdmin || false);
 
   const handleDeleteUser = async (userId: string) => {
