@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -119,6 +118,48 @@ export const useUserManagement = () => {
     }
   };
 
+  const handleDeleteUser = async (userId: string) => {
+    const isAdmin = currentUserProfile?.ruolo === 'admin';
+    if (!isAdmin) {
+      toast({
+        title: "Accesso negato",
+        description: "Solo gli amministratori possono eliminare gli utenti.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      // Update the local users array to reflect the deletion immediately
+      if (users) {
+        const updatedUsers = users.filter(u => u.id !== userId);
+        queryClient.setQueryData(['users'], updatedUsers);
+      }
+
+      toast({
+        title: "Utente eliminato",
+        description: "L'utente è stato eliminato con successo.",
+      });
+
+      // Refresh the data from the server
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
+      toast({
+        title: "Errore",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
   return {
     users,
     isLoading,
@@ -128,6 +169,7 @@ export const useUserManagement = () => {
     handleEditStart,
     handleRoleChange,
     handleRoleUpdate,
+    handleDeleteUser,
     setEditingUser
   };
 };

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Edit, Check, X } from 'lucide-react';
+import { Edit, Trash2, Check, X } from 'lucide-react';
 import { UserRoleSelect } from './UserRoleSelect';
 import { UserTableLoading } from './UserTableLoading';
 import { useUserManagement } from '@/hooks/useUserManagement';
@@ -17,6 +17,7 @@ const UserTable = () => {
     handleEditStart,
     handleRoleChange,
     handleRoleUpdate,
+    handleDeleteUser,
     setEditingUser
   } = useUserManagement();
 
@@ -91,13 +92,22 @@ const UserTable = () => {
                   </>
                 ) : (
                   isAdmin && (
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => handleEditStart(user)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
+                    <>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => handleEditStart(user)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => handleDeleteUser(user.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-600" />
+                      </Button>
+                    </>
                   )
                 )}
               </TableCell>
@@ -110,3 +120,4 @@ const UserTable = () => {
 };
 
 export default UserTable;
+
