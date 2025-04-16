@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -13,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from '@/components/ui/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface User {
   id: string;
@@ -24,9 +24,26 @@ interface User {
 }
 
 const UserTable = () => {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [editingUser, setEditingUser] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<'admin' | 'operatore'>('operatore');
+
+  const { data: currentUserProfile } = useQuery({
+    queryKey: ['currentUserProfile'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user?.id)
+        .single();
+      
+      if (error) throw error;
+      return data as User;
+    }
+  });
+
+  const isAdmin = currentUserProfile?.ruolo === 'admin';
 
   const { data: users, isLoading } = useQuery({
     queryKey: ['users'],
@@ -41,7 +58,25 @@ const UserTable = () => {
     }
   });
 
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString('it-IT', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
   const handleRoleUpdate = async (userId: string) => {
+    if (!isAdmin) {
+      toast({
+        title: "Accesso negato",
+        description: "Solo gli amministratori possono modificare i ruoli degli utenti.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('profiles')
@@ -55,7 +90,6 @@ const UserTable = () => {
         description: "Il ruolo dell'utente è stato aggiornato con successo.",
       });
 
-      // Refresh the users data
       queryClient.invalidateQueries({ queryKey: ['users'] });
       setEditingUser(null);
     } catch (error: any) {
@@ -65,15 +99,6 @@ const UserTable = () => {
         variant: "destructive"
       });
     }
-  };
-
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('it-IT', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
   };
 
   const getRoleLabel = (role: string) => {
@@ -150,7 +175,7 @@ const UserTable = () => {
                     </Button>
                   </>
                 ) : (
-                  <>
+                  isAdmin && (
                     <Button 
                       variant="ghost" 
                       size="icon"
@@ -161,7 +186,7 @@ const UserTable = () => {
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
-                  </>
+                  )
                 )}
               </TableCell>
             </TableRow>
