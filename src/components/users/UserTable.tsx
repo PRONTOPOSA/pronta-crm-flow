@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -86,50 +85,38 @@ const UserTable = () => {
                     <Button 
                       variant="ghost" 
                       size="icon"
-                      onClick={() => {
-                        console.log(`Updating role for user ${user.id}`);
-                        handleRoleUpdate(user.id);
-                      }}
+                      onClick={() => handleRoleUpdate(user.id)}
                     >
                       <Check className="h-4 w-4 text-green-600" />
                     </Button>
                     <Button 
                       variant="ghost" 
                       size="icon"
-                      onClick={() => {
-                        console.log(`Cancelling role edit for user ${user.id}`);
-                        setEditingUser(null);
-                      }}
+                      onClick={() => setEditingUser(null)}
                     >
                       <X className="h-4 w-4 text-red-600" />
                     </Button>
                   </>
                 ) : (
                   <>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => {
-                        console.log(`Starting edit for user ${user.id}`);
-                        handleEditStart(user);
-                      }}
-                      disabled={!isAdmin}
-                      className="cursor-pointer"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => {
-                        console.log(`Deleting user ${user.id}`);
-                        handleDeleteUser(user.id);
-                      }}
-                      disabled={!isAdmin}
-                      className="cursor-pointer"
-                    >
-                      <Trash2 className="h-4 w-4 text-red-600" />
-                    </Button>
+                    {isAdmin && (
+                      <>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => handleEditStart(user)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => handleDeleteUser(user.id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-600" />
+                        </Button>
+                      </>
+                    )}
                   </>
                 )}
               </TableCell>
