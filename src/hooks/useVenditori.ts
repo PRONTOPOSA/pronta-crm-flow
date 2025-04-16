@@ -1,8 +1,8 @@
 
-import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import type { User } from '@/types/users';
 
 export interface VenditoreFormData {
   nome: string;
@@ -26,7 +26,7 @@ export const useVenditori = () => {
         .order('data_creazione', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      return (data || []) as User[];
     }
   });
 
