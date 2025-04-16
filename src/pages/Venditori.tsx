@@ -28,7 +28,6 @@ const Venditori = () => {
       await createVenditore(formData);
       setOpenDialog(false);
     } catch (error) {
-      // L'errore viene già gestito in useVenditori con il toast
       console.error("Errore durante la creazione del venditore:", error);
     }
   };
@@ -39,7 +38,7 @@ const Venditori = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold">Gestione Venditori</h1>
-            <p className="text-gray-500">I venditori sono gestiti esclusivamente in questa sezione, separatamente dagli altri utenti</p>
+            <p className="text-gray-500">Questa sezione è dedicata esclusivamente alla gestione dei venditori</p>
           </div>
           
           {(isAdmin || currentUserProfile?.ruolo === 'operatore') && (
@@ -85,7 +84,7 @@ const Venditori = () => {
           <DialogHeader>
             <DialogTitle>Nuovo Venditore</DialogTitle>
             <DialogDescription>
-              Inserisci i dati del nuovo venditore. I venditori sono gestiti separatamente dagli altri utenti.
+              Inserisci i dati del nuovo venditore da aggiungere al sistema.
             </DialogDescription>
           </DialogHeader>
           <VenditoreForm

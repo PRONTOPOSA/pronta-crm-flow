@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
@@ -11,7 +10,6 @@ import {
   LogOut,
   Mail,
   UserCircle,
-  UsersIcon,
   ShieldCheck
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
