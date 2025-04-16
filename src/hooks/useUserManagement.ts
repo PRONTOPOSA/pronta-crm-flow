@@ -8,15 +8,17 @@ import type { User } from '@/types/users';
 
 export const useUserManagement = () => {
   const { user } = useAuth();
-
+  
   const { data: currentUserProfile, isLoading: isProfileLoading } = useQuery({
-    queryKey: ['currentUserProfile'],
+    queryKey: ['currentUserProfile', user?.id],
     queryFn: async () => {
       console.log('Fetching current user profile');
+      if (!user?.id) return null;
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user?.id)
+        .eq('id', user.id)
         .single();
       
       if (error) {
@@ -48,7 +50,7 @@ export const useUserManagement = () => {
   });
 
   const isAdmin = currentUserProfile?.ruolo === 'admin';
-  const roleManagement = useUserRoles(isAdmin);
+  const roleManagement = useUserRoles(isAdmin || false);
 
   const handleDeleteUser = async (userId: string) => {
     console.log(`Attempting to delete user ${userId}. Admin status: ${isAdmin}`);
@@ -86,12 +88,10 @@ export const useUserManagement = () => {
   };
 
   return {
-    users,
+    users: users || [],
     isLoading: isProfileLoading || isUsersLoading,
-    isAdmin,
+    isAdmin: isAdmin || false,
     handleDeleteUser,
     ...roleManagement
   };
 };
-
-export type { User };
