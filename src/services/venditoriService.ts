@@ -11,7 +11,14 @@ export const fetchVenditori = async (): Promise<VenditoreWithProfile[]> => {
 
   if (error) throw error;
   console.log('Venditori fetched:', data);
-  return data || [];
+  
+  // Cast the data to ensure the ruolo field is correctly typed
+  const typedData = data?.map(item => ({
+    ...item,
+    ruolo: item.ruolo as 'admin' | 'operatore' | 'venditore'
+  })) || [];
+  
+  return typedData;
 };
 
 export const checkExistingUser = async (email: string) => {
