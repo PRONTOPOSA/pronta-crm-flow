@@ -82,21 +82,11 @@ export const ensureVenditoreRecord = async (userId: string) => {
 
 export const deleteVenditoreProfile = async (userId: string) => {
   try {
-    // First delete from venditori table
-    const { error: deleteVenditoreError } = await supabase
-      .from('venditori')
-      .delete()
-      .eq('user_id', userId);
+    const { error } = await supabase.functions.invoke('delete-user', {
+      body: { userId }
+    });
 
-    if (deleteVenditoreError) throw deleteVenditoreError;
-
-    // Then delete from profiles table
-    const { error: deleteProfileError } = await supabase
-      .from('profiles')
-      .delete()
-      .eq('id', userId);
-
-    if (deleteProfileError) throw deleteProfileError;
+    if (error) throw error;
 
     console.log('Successfully deleted venditore profile and user:', userId);
     return true;
