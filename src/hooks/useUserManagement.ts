@@ -49,10 +49,11 @@ export const useUserManagement = () => {
     }
   });
 
-  const isAdmin = currentUserProfile?.ruolo === 'admin';
+  // Force evaluate isAdmin to ensure it's a boolean
+  const isAdmin = currentUserProfile?.ruolo === 'admin' ? true : false;
   console.log('Current user is admin:', isAdmin);
   
-  const roleManagement = useUserRoles(isAdmin || false);
+  const roleManagement = useUserRoles(isAdmin);
 
   const handleDeleteUser = async (userId: string) => {
     console.log(`Attempting to delete user ${userId}. Admin status: ${isAdmin}`);
@@ -92,7 +93,7 @@ export const useUserManagement = () => {
   return {
     users: users || [],
     isLoading: isProfileLoading || isUsersLoading,
-    isAdmin: isAdmin || false,
+    isAdmin,
     handleDeleteUser,
     ...roleManagement
   };

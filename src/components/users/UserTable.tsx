@@ -42,7 +42,7 @@ const UserTable = () => {
     return <UserTableLoading />;
   }
 
-  console.log("Current admin status:", isAdmin);
+  console.log("Current admin status in UserTable:", isAdmin);
 
   return (
     <div>
@@ -96,7 +96,8 @@ const UserTable = () => {
                   </div>
                 ) : (
                   <div className="flex justify-end space-x-2">
-                    {isAdmin === true && (
+                    {/* Use inline condition with isAdmin to display buttons */}
+                    {isAdmin ? (
                       <>
                         <Button 
                           variant="ghost" 
@@ -115,7 +116,7 @@ const UserTable = () => {
                           <Trash2 className="h-4 w-4 text-red-600" />
                         </Button>
                       </>
-                    )}
+                    ) : null}
                   </div>
                 )}
               </TableCell>
