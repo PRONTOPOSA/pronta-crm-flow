@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import MonthlyStats from '@/components/dashboard/MonthlyStats';
@@ -6,6 +5,7 @@ import ProjectTable from '@/components/dashboard/ProjectTable';
 import AppointmentList from '@/components/dashboard/AppointmentList';
 import CalendarPreview from '@/components/dashboard/CalendarPreview';
 import { useUserManagement } from '@/hooks/useUserManagement';
+import { supabase } from '@/integrations/supabase/client';
 
 const Dashboard = () => {
   const { currentUserProfile } = useUserManagement();
@@ -16,7 +16,6 @@ const Dashboard = () => {
   const [projects, setProjects] = useState<any[]>([]);
 
   useEffect(() => {
-    // Se l'utente è un venditore, otteniamo il suo ID venditore
     const fetchVenditoreId = async () => {
       if (isVenditore && currentUserProfile) {
         const { data: venditoreData } = await supabase
@@ -34,7 +33,6 @@ const Dashboard = () => {
     fetchVenditoreId();
   }, [isVenditore, currentUserProfile]);
 
-  // Filtriamo gli appuntamenti in base al ruolo dell'utente
   useEffect(() => {
     const loadAppointments = async () => {
       let query = supabase.from('appuntamenti').select('*');

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,7 +16,8 @@ import {
   DialogFooter
 } from '@/components/ui/dialog';
 import { PlusCircle, Edit, Trash2, Search } from 'lucide-react';
-import { Venditore, VenditoreFormValues, mockVenditori } from '@/types/venditori';
+import { useUserManagement } from '@/hooks/useUserManagement';
+import { useVenditori } from '@/hooks/useVenditori';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -26,140 +27,38 @@ const venditoreSchema = z.object({
   nome: z.string().min(2, { message: 'Il nome deve avere almeno 2 caratteri' }),
   cognome: z.string().min(2, { message: 'Il cognome deve avere almeno 2 caratteri' }),
   email: z.string().email({ message: 'Email non valida' }),
+  password: z.string().min(6, { message: 'La password deve avere almeno 6 caratteri' }),
   telefono: z.string().optional()
 });
 
 const Venditori = () => {
-  const [venditori, setVenditori] = useState<Venditore[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
-  const [editingVenditore, setEditingVenditore] = useState<Venditore | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const { isAdmin, currentUserProfile } = useUserManagement();
+  const { venditori, isLoading, createVenditore, deleteVenditore } = useVenditori();
   const { toast } = useToast();
-
-  const form = useForm<VenditoreFormValues>({
+  const form = useForm<z.infer<typeof venditoreSchema>>({
     resolver: zodResolver(venditoreSchema),
-    defaultValues: {
-      nome: '',
-      cognome: '',
-      email: '',
-      telefono: ''
-    }
   });
 
-  const fetchVenditori = async () => {
-    setIsLoading(true);
+  const onSubmit = async (data: z.infer<typeof venditoreSchema>) => {
     try {
-      // Usiamo i dati di esempio invece di chiamare Supabase
-      setVenditori(mockVenditori);
-    } catch (error) {
-      console.error('Errore nel caricamento dei venditori:', error);
+      await createVenditore(data);
+      setOpenDialog(false);
+      form.reset();
       toast({
-        title: "Errore",
-        description: "Impossibile caricare i venditori",
-        variant: "destructive"
+        title: "Successo",
+        description: "Venditore creato con successo",
       });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchVenditori();
-  }, []);
-
-  const handleOpenForm = (venditore?: Venditore) => {
-    if (venditore) {
-      setEditingVenditore(venditore);
-      form.reset({
-        nome: venditore.nome,
-        cognome: venditore.cognome,
-        email: venditore.email,
-        telefono: venditore.telefono || ''
-      });
-    } else {
-      setEditingVenditore(null);
-      form.reset({
-        nome: '',
-        cognome: '',
-        email: '',
-        telefono: ''
-      });
-    }
-    setOpenDialog(true);
-  };
-
-  const handleCloseForm = () => {
-    setOpenDialog(false);
-    setEditingVenditore(null);
-  };
-
-  const onSubmit = async (data: VenditoreFormValues) => {
-    try {
-      if (editingVenditore) {
-        // Simuliamo l'aggiornamento di un venditore esistente
-        const updatedVenditori = venditori.map(v => 
-          v.id === editingVenditore.id ? { ...v, ...data } : v
-        );
-        setVenditori(updatedVenditori);
-        
-        toast({
-          title: "Successo",
-          description: "Venditore aggiornato con successo",
-        });
-      } else {
-        // Simuliamo la creazione di un nuovo venditore
-        const newVenditore: Venditore = {
-          id: Date.now().toString(), // ID simulato
-          user_id: `user-${Date.now()}`, // User ID simulato
-          nome: data.nome,
-          cognome: data.cognome,
-          email: data.email,
-          telefono: data.telefono,
-          created_at: new Date().toISOString()
-        };
-        
-        setVenditori([...venditori, newVenditore]);
-        
-        toast({
-          title: "Successo",
-          description: "Venditore creato con successo",
-        });
-      }
-      
-      handleCloseForm();
     } catch (error: any) {
-      console.error('Errore nel salvataggio del venditore:', error);
       toast({
         title: "Errore",
-        description: error.message || "Impossibile salvare il venditore",
+        description: error.message,
         variant: "destructive"
       });
     }
   };
 
-  const handleDeleteVenditore = async (id: string) => {
-    if (confirm('Sei sicuro di voler eliminare questo venditore?')) {
-      try {
-        // Simuliamo l'eliminazione di un venditore
-        setVenditori(venditori.filter(v => v.id !== id));
-        
-        toast({
-          title: "Successo",
-          description: "Venditore eliminato con successo",
-        });
-      } catch (error) {
-        console.error('Errore nell\'eliminazione del venditore:', error);
-        toast({
-          title: "Errore",
-          description: "Impossibile eliminare il venditore",
-          variant: "destructive"
-        });
-      }
-    }
-  };
-
-  // Filter venditori based on search query
   const filteredVenditori = venditori.filter(venditore => 
     venditore.nome.toLowerCase().includes(searchQuery.toLowerCase()) ||
     venditore.cognome.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -175,10 +74,12 @@ const Venditori = () => {
             <p className="text-gray-500">Gestisci il tuo team di venditori</p>
           </div>
           
-          <Button onClick={() => handleOpenForm()}>
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Nuovo Venditore
-          </Button>
+          {(isAdmin || currentUserProfile?.ruolo === 'operatore') && (
+            <Button onClick={() => setOpenDialog(true)}>
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Nuovo Venditore
+            </Button>
+          )}
         </div>
         
         <Card>
@@ -226,12 +127,15 @@ const Venditori = () => {
                       <TableCell>{venditore.email}</TableCell>
                       <TableCell>{venditore.telefono || '-'}</TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" onClick={() => handleOpenForm(venditore)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleDeleteVenditore(venditore.id)}>
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </Button>
+                        {isAdmin && (
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => deleteVenditore(venditore.id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))
@@ -245,7 +149,7 @@ const Venditori = () => {
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>{editingVenditore ? 'Modifica Venditore' : 'Nuovo Venditore'}</DialogTitle>
+            <DialogTitle>Nuovo Venditore</DialogTitle>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -292,6 +196,19 @@ const Venditori = () => {
               />
               <FormField
                 control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="Password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
                 name="telefono"
                 render={({ field }) => (
                   <FormItem>
@@ -304,11 +221,11 @@ const Venditori = () => {
                 )}
               />
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={handleCloseForm}>
+                <Button type="button" variant="outline" onClick={() => setOpenDialog(false)}>
                   Annulla
                 </Button>
                 <Button type="submit">
-                  {editingVenditore ? 'Aggiorna' : 'Crea'}
+                  Crea
                 </Button>
               </DialogFooter>
             </form>
