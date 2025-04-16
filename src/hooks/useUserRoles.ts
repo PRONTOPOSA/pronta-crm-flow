@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -11,12 +11,21 @@ export const useUserRoles = (isAdmin: boolean) => {
   const [editingRoles, setEditingRoles] = useState<Record<string, 'admin' | 'operatore'>>({});
 
   // Log quando isAdmin cambia
-  console.log("useUserRoles - isAdmin:", isAdmin, typeof isAdmin);
+  useEffect(() => {
+    console.log("useUserRoles - isAdmin:", isAdmin, typeof isAdmin);
+  }, [isAdmin]);
 
   const handleEditStart = (user: User) => {
     console.log('Starting edit for user:', user);
+    console.log('Current isAdmin status:', isAdmin);
+    
     if (!isAdmin) {
       console.log('Edit not allowed: user is not admin');
+      toast({
+        title: "Accesso negato",
+        description: "Solo gli amministratori possono modificare i ruoli degli utenti.",
+        variant: "destructive"
+      });
       return;
     }
     

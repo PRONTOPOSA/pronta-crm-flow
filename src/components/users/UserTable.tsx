@@ -1,8 +1,8 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2, Check, X, ShieldAlert } from 'lucide-react';
+import { Edit, Trash2, Check, X, ShieldAlert, RefreshCw } from 'lucide-react';
 import { UserRoleSelect } from './UserRoleSelect';
 import { UserTableLoading } from './UserTableLoading';
 import { useUserManagement } from '@/hooks/useUserManagement';
@@ -23,10 +23,19 @@ const UserTable = () => {
     promoteToAdmin
   } = useUserManagement();
 
+  // Stato locale per tenere traccia se è stato promosso di recente
+  const [recentlyPromoted, setRecentlyPromoted] = useState(false);
+
   // Log isAdmin all'inizializzazione e quando cambia
   useEffect(() => {
     console.log("UserTable - isAdmin value:", isAdmin, typeof isAdmin);
-  }, [isAdmin]);
+    
+    // Se l'utente è diventato admin, registra questo cambiamento
+    if (isAdmin && recentlyPromoted) {
+      console.log("User is now admin, hiding promotion banner");
+      setRecentlyPromoted(false);
+    }
+  }, [isAdmin, recentlyPromoted]);
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '';
@@ -45,6 +54,11 @@ const UserTable = () => {
     }
   };
 
+  const handlePromote = async () => {
+    setRecentlyPromoted(true);
+    await promoteToAdmin();
+  };
+
   if (isLoading) {
     return <UserTableLoading />;
   }
@@ -61,7 +75,7 @@ const UserTable = () => {
               <Button 
                 variant="outline" 
                 className="ml-4 bg-amber-100 hover:bg-amber-200 border-amber-300"
-                onClick={promoteToAdmin}
+                onClick={handlePromote}
               >
                 <ShieldAlert className="mr-2 h-4 w-4" />
                 Diventa Amministratore

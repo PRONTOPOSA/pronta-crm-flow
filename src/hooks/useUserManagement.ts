@@ -5,10 +5,12 @@ import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRoles } from './useUserRoles';
 import type { User } from '@/types/users';
+import { useState, useEffect } from 'react';
 
 export const useUserManagement = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [localIsAdmin, setLocalIsAdmin] = useState<boolean>(false);
   
   const { data: currentUserProfile, isLoading: isProfileLoading } = useQuery({
     queryKey: ['currentUserProfile', user?.id],
@@ -50,8 +52,17 @@ export const useUserManagement = () => {
     }
   });
 
-  // Esplicitamente imposta isAdmin come booleano
-  const isAdmin = currentUserProfile?.ruolo === 'admin' ? true : false;
+  // Aggiorna localIsAdmin quando il profilo utente cambia
+  useEffect(() => {
+    if (currentUserProfile) {
+      const isAdminValue = currentUserProfile.ruolo === 'admin';
+      console.log('Updating isAdmin state to:', isAdminValue);
+      setLocalIsAdmin(isAdminValue);
+    }
+  }, [currentUserProfile]);
+
+  // Usa lo stato locale per isAdmin
+  const isAdmin = localIsAdmin;
   console.log('Current user is admin:', isAdmin, typeof isAdmin);
   
   const roleManagement = useUserRoles(isAdmin);
@@ -106,8 +117,25 @@ export const useUserManagement = () => {
       
       if (error) throw error;
       
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      // Immediatamente aggiorna lo stato locale
+      setLocalIsAdmin(true);
+      
+      // Forza l'aggiornamento delle query
+      await queryClient.invalidateQueries({ queryKey: ['currentUserProfile', user.id] });
+      await queryClient.invalidateQueries({ queryKey: ['users'] });
+
+      // Ricarica immediatamente i dati dell'utente corrente
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+        
+      if (data) {
+        console.log('User profile after promotion:', data);
+        // Aggiorna la cache manualmente
+        queryClient.setQueryData(['currentUserProfile', user.id], data);
+      }
       
       toast({
         title: "Ruolo aggiornato",
