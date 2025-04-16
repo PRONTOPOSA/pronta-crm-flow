@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -85,11 +86,15 @@ const UserTable = () => {
     if (userToDelete) {
       try {
         setDeleteDialog(false);
-        setFilteredUsers(prev => prev.filter(user => user.id !== userToDelete));
+        // First delete the user through the API
         await handleDeleteUser(userToDelete);
+        // Then update the local state only after successful deletion
+        setFilteredUsers(prev => prev.filter(user => user.id !== userToDelete));
         setUserToDelete(null);
+        
       } catch (error) {
         console.error("Error deleting user:", error);
+        // If there's an error, refresh the list to ensure UI consistency
         if (users) {
           setFilteredUsers(users.filter(user => user.ruolo !== 'venditore'));
         }
