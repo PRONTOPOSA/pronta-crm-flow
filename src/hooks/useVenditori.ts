@@ -77,8 +77,7 @@ export const useVenditori = () => {
           data: {
             nome: formData.nome,
             cognome: formData.cognome,
-            ruolo: 'venditore',
-            telefono: formData.telefono || null
+            ruolo: 'venditore'
           }
         }
       });
@@ -86,47 +85,18 @@ export const useVenditori = () => {
       if (authError) throw authError;
 
       if (authData.user) {
-        try {
-          const { error: columnCheckError } = await supabase
-            .from('profiles')
-            .select('telefono')
-            .limit(1);
-
-          if (columnCheckError && columnCheckError.message.includes('column "telefono" does not exist')) {
-            console.log('La colonna telefono non esiste. Utilizziamo solo i campi esistenti.');
-            
-            const { error: profileError } = await supabase
-              .from('profiles')
-              .update({ 
-                ruolo: 'venditore',
-                nome: formData.nome,
-                cognome: formData.cognome
-              })
-              .eq('id', authData.user.id);
-            
-            if (profileError) {
-              console.error('Errore nell\'aggiornamento del profilo:', profileError);
-              throw profileError;
-            }
-          } else {
-            const { error: profileError } = await supabase
-              .from('profiles')
-              .update({ 
-                ruolo: 'venditore',
-                nome: formData.nome,
-                cognome: formData.cognome,
-                telefono: formData.telefono || null
-              })
-              .eq('id', authData.user.id);
-            
-            if (profileError) {
-              console.error('Errore nell\'aggiornamento del profilo:', profileError);
-              throw profileError;
-            }
-          }
-        } catch (error) {
-          console.error('Errore nel controllo o aggiornamento del profilo:', error);
-          throw error;
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ 
+            ruolo: 'venditore',
+            nome: formData.nome,
+            cognome: formData.cognome
+          })
+          .eq('id', authData.user.id);
+        
+        if (profileError) {
+          console.error('Errore nell\'aggiornamento del profilo:', profileError);
+          throw profileError;
         }
       }
 
