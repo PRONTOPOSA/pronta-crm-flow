@@ -6,6 +6,7 @@ import { useUserManagement } from '@/hooks/useUserManagement';
 import { AdminPromotionAlert } from './AdminPromotionAlert';
 import { DeleteUserDialog } from './DeleteUserDialog';
 import { UserTableRow } from './UserTableRow';
+import type { User } from '@/types/users';
 
 const UserTable = () => {
   const {
@@ -25,7 +26,7 @@ const UserTable = () => {
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const [recentlyPromoted, setRecentlyPromoted] = useState(false);
-  const [filteredUsers, setFilteredUsers] = useState<any[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
 
   useEffect(() => {
     if (users) {
@@ -71,6 +72,7 @@ const UserTable = () => {
     if (userToDelete) {
       try {
         await handleDeleteUser(userToDelete);
+        // Immediately remove the user from the filtered list
         setFilteredUsers(prevUsers => prevUsers.filter(user => user.id !== userToDelete));
         setUserToDelete(null);
         setDeleteDialog(false);

@@ -10,10 +10,10 @@ interface UserTableRowProps {
   user: User;
   isAdmin: boolean;
   editingUser: string | null;
-  editingRoles: Record<string, string>;
+  editingRoles: Record<string, User['ruolo']>;
   onEdit: (user: User) => void;
   onDelete: (userId: string) => void;
-  onRoleChange: (userId: string, role: 'admin' | 'operatore' | 'venditore') => void;
+  onRoleChange: (userId: string, role: User['ruolo']) => void;
   onRoleUpdate: (userId: string) => void;
   onCancelEdit: () => void;
   formatDate: (date: string | null) => string;
@@ -97,3 +97,4 @@ export const UserTableRow: React.FC<UserTableRowProps> = ({
     </TableRow>
   );
 };
+
