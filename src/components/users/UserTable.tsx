@@ -63,7 +63,7 @@ const UserTable = () => {
               <TableCell>
                 {editingUser === user.id ? (
                   <UserRoleSelect
-                    currentRole={editingRoles[user.id]}
+                    currentRole={editingRoles[user.id] || user.ruolo}
                     onRoleChange={(role) => handleRoleChange(user.id, role)}
                   />
                 ) : (

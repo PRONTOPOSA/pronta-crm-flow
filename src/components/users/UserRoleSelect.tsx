@@ -7,7 +7,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { User } from '@/hooks/useUserManagement';
 
 interface UserRoleSelectProps {
   currentRole: 'admin' | 'operatore';
@@ -18,7 +17,7 @@ export const UserRoleSelect = ({ currentRole, onRoleChange }: UserRoleSelectProp
   return (
     <Select
       value={currentRole}
-      onValueChange={onRoleChange}
+      onValueChange={(value: 'admin' | 'operatore') => onRoleChange(value)}
     >
       <SelectTrigger className="w-[180px]">
         <SelectValue placeholder="Seleziona ruolo" />

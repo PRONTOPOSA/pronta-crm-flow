@@ -56,6 +56,7 @@ export const useUserManagement = () => {
   };
 
   const handleRoleChange = (userId: string, role: 'admin' | 'operatore') => {
+    console.log('Changing role for user', userId, 'to', role);
     setEditingRoles(prev => ({
       ...prev,
       [userId]: role
@@ -84,6 +85,7 @@ export const useUserManagement = () => {
     }
 
     try {
+      console.log('Updating role in database:', userId, newRole);
       const { error } = await supabase
         .from('profiles')
         .update({ ruolo: newRole })
@@ -91,14 +93,24 @@ export const useUserManagement = () => {
 
       if (error) throw error;
 
+      // Update the local users array to reflect the change immediately
+      if (users) {
+        const updatedUsers = users.map(u => 
+          u.id === userId ? { ...u, ruolo: newRole } : u
+        );
+        queryClient.setQueryData(['users'], updatedUsers);
+      }
+
       toast({
         title: "Ruolo aggiornato",
         description: "Il ruolo dell'utente è stato aggiornato con successo.",
       });
 
+      // Refresh the data from the server
       queryClient.invalidateQueries({ queryKey: ['users'] });
       setEditingUser(null);
     } catch (error: any) {
+      console.error('Error updating role:', error);
       toast({
         title: "Errore",
         description: error.message,
