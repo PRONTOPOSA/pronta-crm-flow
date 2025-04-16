@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react';
 export const useUserManagement = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [localIsAdmin, setLocalIsAdmin] = useState<boolean>(false);
   
   const { data: currentUserProfile, isLoading: isProfileLoading } = useQuery({
@@ -110,9 +111,11 @@ export const useUserManagement = () => {
         description: "L'utente è stato eliminato con successo.",
       });
 
-      // Aggiorna la lista utenti dopo l'eliminazione
-      await queryClient.invalidateQueries({ queryKey: ['users'] });
-      await queryClient.invalidateQueries({ queryKey: ['venditori'] });
+      // Immediately invalidate relevant queries to update the UI
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['users'] }),
+        queryClient.invalidateQueries({ queryKey: ['venditori'] })
+      ]);
 
     } catch (error: any) {
       console.error('Error deleting user:', error);
@@ -179,3 +182,4 @@ export const useUserManagement = () => {
     ...roleManagement
   };
 };
+
