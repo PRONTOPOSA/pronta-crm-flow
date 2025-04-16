@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2, Check, X, ShieldAlert, RefreshCw } from 'lucide-react';
+import { Edit, Trash2, Check, X, ShieldAlert } from 'lucide-react';
 import { UserRoleSelect } from './UserRoleSelect';
 import { UserTableLoading } from './UserTableLoading';
 import { useUserManagement } from '@/hooks/useUserManagement';
@@ -39,6 +39,18 @@ const UserTable = () => {
 
   // Stato locale per tenere traccia se è stato promosso di recente
   const [recentlyPromoted, setRecentlyPromoted] = useState(false);
+  
+  // Local state for filtered users to ensure UI updates
+  const [filteredUsers, setFilteredUsers] = useState<any[]>([]);
+
+  // Update filtered users when users array changes
+  useEffect(() => {
+    if (users) {
+      const filtered = users.filter(user => user.ruolo !== 'venditore');
+      setFilteredUsers(filtered);
+      console.log("Updated filtered users:", filtered.length);
+    }
+  }, [users]);
 
   // Log isAdmin all'inizializzazione e quando cambia
   useEffect(() => {
@@ -78,20 +90,21 @@ const UserTable = () => {
     setDeleteDialog(true);
   };
 
-  const executeDelete = () => {
+  const executeDelete = async () => {
     if (userToDelete) {
-      handleDeleteUser(userToDelete);
-      setUserToDelete(null);
+      // Remove user from local state immediately for immediate UI feedback
+      setFilteredUsers(prev => prev.filter(user => user.id !== userToDelete));
+      // Close dialog first for better UX
       setDeleteDialog(false);
+      // Then perform the actual deletion
+      await handleDeleteUser(userToDelete);
+      setUserToDelete(null);
     }
   };
 
   if (isLoading) {
     return <UserTableLoading />;
   }
-
-  // Filter out users with 'venditore' role - this is the key change
-  const filteredUsers = users.filter(user => user.ruolo !== 'venditore');
   
   console.log("UserTable rendering. Admin status:", isAdmin);
   console.log("Filtered users (excluding vendors):", filteredUsers.length);
