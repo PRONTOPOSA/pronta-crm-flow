@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogDescription
 } from '@/components/ui/dialog';
-import { PlusCircle, Search } from 'lucide-react';
+import { PlusCircle, Search, Users } from 'lucide-react';
 import { useUserManagement } from '@/hooks/useUserManagement';
 import { useVenditori } from '@/hooks/useVenditori';
 import { VenditoreForm } from '@/components/venditori/VenditoreForm';
@@ -39,7 +39,7 @@ const Venditori = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold">Gestione Venditori</h1>
-            <p className="text-gray-500">Gestisci il tuo team di venditori</p>
+            <p className="text-gray-500">I venditori sono gestiti esclusivamente in questa sezione, separatamente dagli altri utenti</p>
           </div>
           
           {(isAdmin || currentUserProfile?.ruolo === 'operatore') && (
@@ -53,7 +53,10 @@ const Venditori = () => {
         <Card>
           <CardHeader className="pb-2">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <CardTitle>Lista Venditori</CardTitle>
+              <CardTitle className="flex items-center">
+                <Users className="mr-2 h-5 w-5" />
+                Lista Venditori
+              </CardTitle>
               <div className="relative w-full sm:w-64">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
                 <Input
@@ -82,7 +85,7 @@ const Venditori = () => {
           <DialogHeader>
             <DialogTitle>Nuovo Venditore</DialogTitle>
             <DialogDescription>
-              Inserisci i dati del nuovo venditore. Il venditore riceverà un'email per confermare il suo account.
+              Inserisci i dati del nuovo venditore. I venditori sono gestiti separatamente dagli altri utenti.
             </DialogDescription>
           </DialogHeader>
           <VenditoreForm

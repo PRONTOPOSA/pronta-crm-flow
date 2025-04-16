@@ -11,7 +11,8 @@ import {
   LogOut,
   Mail,
   UserCircle,
-  UsersIcon
+  UsersIcon,
+  ShieldCheck
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -62,7 +63,7 @@ const Sidebar = () => {
           <SidebarItem to="/venditori" icon={<UserCircle size={20} />} label="Venditori" active={location.pathname === '/venditori'} />
           <SidebarItem to="/comunicazioni" icon={<Mail size={20} />} label="Comunicazioni" active={location.pathname === '/comunicazioni'} />
           <SidebarItem to="/reportistica" icon={<PieChart size={20} />} label="Reportistica" active={location.pathname === '/reportistica'} />
-          <SidebarItem to="/users" icon={<UsersIcon size={20} />} label="Utenti" active={location.pathname === '/users'} />
+          <SidebarItem to="/users" icon={<ShieldCheck size={20} />} label="Admin e Operatori" active={location.pathname === '/users'} />
         </ul>
       </nav>
       
