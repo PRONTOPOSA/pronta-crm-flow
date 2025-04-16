@@ -10,8 +10,16 @@ export const useUserRoles = (isAdmin: boolean) => {
   const [editingUser, setEditingUser] = useState<string | null>(null);
   const [editingRoles, setEditingRoles] = useState<Record<string, 'admin' | 'operatore'>>({});
 
+  // Log quando isAdmin cambia
+  console.log("useUserRoles - isAdmin:", isAdmin, typeof isAdmin);
+
   const handleEditStart = (user: User) => {
     console.log('Starting edit for user:', user);
+    if (!isAdmin) {
+      console.log('Edit not allowed: user is not admin');
+      return;
+    }
+    
     setEditingUser(user.id);
     setEditingRoles(prev => ({
       ...prev,

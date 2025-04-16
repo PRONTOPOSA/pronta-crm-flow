@@ -49,9 +49,9 @@ export const useUserManagement = () => {
     }
   });
 
-  // Force evaluate isAdmin to ensure it's a boolean
+  // Esplicitamente imposta isAdmin come booleano
   const isAdmin = currentUserProfile?.ruolo === 'admin' ? true : false;
-  console.log('Current user is admin:', isAdmin);
+  console.log('Current user is admin:', isAdmin, typeof isAdmin);
   
   const roleManagement = useUserRoles(isAdmin);
 

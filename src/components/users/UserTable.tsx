@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Edit, Trash2, Check, X } from 'lucide-react';
@@ -20,6 +20,11 @@ const UserTable = () => {
     handleDeleteUser,
     setEditingUser
   } = useUserManagement();
+
+  // Log isAdmin all'inizializzazione e quando cambia
+  useEffect(() => {
+    console.log("UserTable - isAdmin value:", isAdmin, typeof isAdmin);
+  }, [isAdmin]);
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '';
@@ -42,7 +47,7 @@ const UserTable = () => {
     return <UserTableLoading />;
   }
 
-  console.log("Current admin status in UserTable:", isAdmin);
+  console.log("UserTable rendering. Admin status:", isAdmin);
 
   return (
     <div>
@@ -96,8 +101,8 @@ const UserTable = () => {
                   </div>
                 ) : (
                   <div className="flex justify-end space-x-2">
-                    {/* Use inline condition with isAdmin to display buttons */}
-                    {isAdmin ? (
+                    {/* Sempre mostra i pulsanti per l'amministratore */}
+                    {isAdmin && (
                       <>
                         <Button 
                           variant="ghost" 
@@ -116,7 +121,7 @@ const UserTable = () => {
                           <Trash2 className="h-4 w-4 text-red-600" />
                         </Button>
                       </>
-                    ) : null}
+                    )}
                   </div>
                 )}
               </TableCell>
