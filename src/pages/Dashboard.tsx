@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import MonthlyStats from '@/components/dashboard/MonthlyStats';
@@ -15,6 +14,8 @@ const Dashboard = () => {
   const [selectedVenditoreId, setSelectedVenditoreId] = useState<string | undefined>(undefined);
   const [appointments, setAppointments] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
+  const [todayAppointments, setTodayAppointments] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchVenditoreId = async () => {
@@ -49,6 +50,58 @@ const Dashboard = () => {
     };
 
     loadAppointments();
+  }, [isVenditore, selectedVenditoreId]);
+
+  const fetchTodayAppointments = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Get today's date in ISO format
+      const today = new Date();
+      const dateStr = today.toISOString().split('T')[0];
+      
+      // Create the base query
+      let query = supabase
+        .from('appuntamenti')
+        .select('*')
+        .gte('datetime', `${dateStr}T00:00:00`)
+        .lt('datetime', `${dateStr}T23:59:59`);
+      
+      // If user is a venditore, only show their appointments
+      if (isVenditore) {
+        query = query.eq('venditore_id', currentUserProfile?.id);
+      }
+      
+      // Execute the query
+      const { data, error } = await query;
+      
+      if (data && data.length > 0) {
+        const mappedData = data.map(app => ({
+          id: app.id,
+          title: app.title,
+          client: app.client,
+          type: app.type as AppointmentType,
+          datetime: app.datetime,
+          endtime: app.endtime || '',
+          location: app.location,
+          technician: '', // This field doesn't exist in database, using empty string
+          notes: app.notes || '',
+          venditoreId: app.venditore_id
+        }));
+        setTodayAppointments(mappedData);
+      } else {
+        setTodayAppointments([]);
+      }
+      
+      setIsLoading(false);
+    } catch (err) {
+      console.error('Error fetching today appointments:', err);
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTodayAppointments();
   }, [isVenditore, selectedVenditoreId]);
 
   return (

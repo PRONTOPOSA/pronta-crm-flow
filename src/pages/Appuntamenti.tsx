@@ -1,54 +1,97 @@
-
 import React, { useState, useEffect } from 'react';
-import MainLayout from '@/components/layout/MainLayout';
-import { AppointmentDialog, AppointmentFormData } from '@/components/appointments/AppointmentDialog';
-import { toast } from '@/components/ui/use-toast';
-import { AppointmentsCalendar } from '@/components/appointments/AppointmentsCalendar';
+import { Calendar } from 'lucide-react';
+import { Calendar as CalendarUI } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 import { AppointmentsList } from '@/components/appointments/AppointmentsList';
-import { useUserManagement } from '@/hooks/useUserManagement';
+import { AddAppointmentDialog } from '@/components/appointments/AddAppointmentDialog';
 import { supabase } from '@/integrations/supabase/client';
-import { AppointmentType } from '@/components/appointments/types';
+import { useToast } from '@/hooks/use-toast';
+import { AppointmentFormData, AppointmentType } from '@/components/appointments/types';
+import { useUser } from '@/contexts/AuthContext';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const Appuntamenti = () => {
-  const { currentUserProfile } = useUserManagement();
-  const isVenditore = currentUserProfile?.ruolo === 'venditore';
-  
-  const [date, setDate] = useState<Date | undefined>(new Date());
-  const [selectedAppointment, setSelectedAppointment] = useState<AppointmentFormData | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [appointments, setAppointments] = useState<AppointmentFormData[]>([]);
-  const [typeFilter, setTypeFilter] = useState('all');
-  const [venditoreId, setVenditoreId] = useState<string | undefined>(undefined);
-  
-  // Fetch venditore_id if the user is a venditore
+  const [selectedAppointment, setSelectedAppointment] = useState<AppointmentFormData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const { currentUserProfile } = useUser();
+  const [selectedVenditoreId, setSelectedVenditoreId] = useState<string | null>(null);
+  const [availableVenditori, setAvailableVenditori] = useState<{ id: string; nome: string; cognome: string; }[]>([]);
+  const [isVenditore, setIsVenditore] = useState(false);
+
   useEffect(() => {
-    const fetchVenditoreId = async () => {
-      if (isVenditore && currentUserProfile) {
-        const { data: venditoreData } = await supabase
-          .from('venditori')
-          .select('id')
-          .eq('user_id', currentUserProfile.id)
-          .single();
-        
-        if (venditoreData) {
-          setVenditoreId(venditoreData.id);
+    const checkUserRole = async () => {
+      if (currentUserProfile?.ruolo === 'venditore') {
+        setIsVenditore(true);
+      } else {
+        setIsVenditore(false);
+      }
+    };
+    checkUserRole();
+  }, [currentUserProfile]);
+
+  useEffect(() => {
+    const fetchVenditori = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, nome, cognome')
+          .eq('ruolo', 'venditore');
+
+        if (error) {
+          console.error("Errore nel recupero dei venditori:", error);
+          return;
         }
+
+        if (data) {
+          setAvailableVenditori(data.map(v => ({
+            id: v.id,
+            nome: v.nome,
+            cognome: v.cognome
+          })));
+        }
+      } catch (error) {
+        console.error("Errore durante il recupero dei venditori:", error);
       }
     };
 
-    fetchVenditoreId();
-  }, [isVenditore, currentUserProfile]);
-  
-  // Load appointments from database or localStorage
-  useEffect(() => {
-    const loadAppointments = async () => {
-      // Try to load from database first
-      let query = supabase.from('appuntamenti').select('*');
-      
-      // If user is a venditore, only show their appointments
-      if (isVenditore && venditoreId) {
-        query = query.eq('venditore_id', venditoreId);
-      }
+    fetchVenditori();
+  }, []);
 
+  useEffect(() => {
+    fetchAppointments();
+  }, [selectedDate, isVenditore, currentUserProfile?.id, selectedVenditoreId]);
+
+  const fetchAppointments = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Create the base query
+      let query = supabase
+        .from('appuntamenti')
+        .select('*');
+      
+      // Apply filtering based on user role
+      if (isVenditore) {
+        query = query.eq('venditore_id', currentUserProfile?.id);
+      } else if (selectedVenditoreId) {
+        query = query.eq('venditore_id', selectedVenditoreId);
+      }
+      
+      // Filter by selected date if available
+      if (selectedDate) {
+        const dateStr = selectedDate.toISOString().split('T')[0];
+        query = query.gte('datetime', `${dateStr}T00:00:00`)
+                     .lt('datetime', `${dateStr}T23:59:59`);
+      }
+      
+      // Execute the query
       const { data, error } = await query;
       
       if (data && data.length > 0) {
@@ -59,8 +102,8 @@ const Appuntamenti = () => {
           type: app.type as AppointmentType,
           datetime: app.datetime,
           endtime: app.endtime || '',
-          location: app.location || '',
-          technician: app.notes || '', // Use notes field for technician as it doesn't exist in DB
+          location: app.location,
+          technician: '', // This field doesn't exist in database, using empty string
           notes: app.notes || '',
           venditoreId: app.venditore_id
         }));
@@ -69,151 +112,220 @@ const Appuntamenti = () => {
         // Fallback to localStorage if no data in database
         const savedAppointments = localStorage.getItem('appointments');
         if (savedAppointments) {
-          let parsedAppointments = JSON.parse(savedAppointments);
-          
-          // If user is a venditore, filter to only show their appointments
-          if (isVenditore && venditoreId) {
-            parsedAppointments = parsedAppointments.filter(
-              (app: AppointmentFormData) => app.venditoreId === venditoreId
-            );
-          }
-          
-          setAppointments(parsedAppointments);
+          setAppointments(JSON.parse(savedAppointments));
+        } else {
+          setAppointments([]);
         }
       }
-    };
-    
-    loadAppointments();
-  }, [isVenditore, venditoreId]);
-  
+      
+      setIsLoading(false);
+    } catch (err) {
+      console.error('Error fetching appointments:', err);
+      toast({
+        title: 'Errore',
+        description: 'Impossibile caricare gli appuntamenti',
+        variant: 'destructive'
+      });
+      setIsLoading(false);
+    }
+  };
+
+  const handleDateSelect = (date: Date | undefined) => {
+    setSelectedDate(date);
+    setSelectedAppointment(null);
+  };
+
+  const handleAppointmentSelect = (appointment: AppointmentFormData) => {
+    setSelectedAppointment(appointment);
+  };
+
   const handleAddAppointment = async (newAppointment: AppointmentFormData) => {
     try {
-      // Try to save to database first
       const { data, error } = await supabase
         .from('appuntamenti')
-        .insert({
-          id: newAppointment.id,
-          title: newAppointment.title,
-          client: newAppointment.client,
-          type: newAppointment.type,
-          datetime: newAppointment.datetime,
-          endtime: newAppointment.endtime,
-          location: newAppointment.location,
-          notes: newAppointment.notes,
-          venditore_id: newAppointment.venditoreId
-        })
-        .select();
-      
-      if (error) throw error;
-      
-      // Update local state
-      setAppointments(prev => [...prev, newAppointment]);
-      setDate(new Date(newAppointment.datetime));
-      
+        .insert([
+          {
+            id: newAppointment.id,
+            title: newAppointment.title,
+            client: newAppointment.client,
+            type: newAppointment.type,
+            datetime: newAppointment.datetime,
+            endtime: newAppointment.endtime,
+            location: newAppointment.location,
+            notes: newAppointment.notes,
+            venditore_id: isVenditore ? currentUserProfile?.id : selectedVenditoreId,
+          },
+        ]);
+
+      if (error) {
+        console.error("Errore nell'aggiunta dell'appuntamento:", error);
+        toast({
+          title: "Errore",
+          description: "Errore nell'aggiunta dell'appuntamento",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      fetchAppointments();
       toast({
-        title: "Appuntamento creato",
-        description: `L'appuntamento "${newAppointment.title}" è stato aggiunto con successo.`
+        title: "Successo",
+        description: "Appuntamento aggiunto con successo",
       });
-      
-      // Update localStorage as backup
-      const updatedAppointments = [...appointments, newAppointment];
-      localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
-    } catch (error: any) {
-      console.error('Errore durante la creazione dell\'appuntamento:', error);
+    } catch (error) {
+      console.error("Errore durante l'aggiunta dell'appuntamento:", error);
       toast({
         title: "Errore",
-        description: error.message || "Errore durante la creazione dell'appuntamento",
+        description: "Errore durante l'aggiunta dell'appuntamento",
         variant: "destructive"
       });
-      
-      // Fallback to localStorage only
-      setAppointments(prev => [...prev, newAppointment]);
-      localStorage.setItem('appointments', JSON.stringify([...appointments, newAppointment]));
     }
   };
+
+  const handleUpdateAppointment = async (updatedAppointment: AppointmentFormData) => {
+    try {
+      const { data, error } = await supabase
+        .from('appuntamenti')
+        .update({
+          title: updatedAppointment.title,
+          client: updatedAppointment.client,
+          type: updatedAppointment.type,
+          datetime: updatedAppointment.datetime,
+          endtime: updatedAppointment.endtime,
+          location: updatedAppointment.location,
+          notes: updatedAppointment.notes,
+        })
+        .eq('id', updatedAppointment.id);
   
-  const handleCompleteAppointment = (id: string) => {
-    setAppointments(prev => prev.filter(app => app.id !== id));
-    setSelectedAppointment(null);
-    toast({
-      title: "Appuntamento completato",
-      description: "L'appuntamento è stato contrassegnato come completato."
-    });
-    
-    // Also update localStorage
-    const updatedAppointments = appointments.filter(app => app.id !== id);
-    localStorage.setItem('appointments', JSON.stringify(updatedAppointments));
-    
-    // Try to delete from database
-    supabase.from('appuntamenti').delete().eq('id', id);
-  };
+      if (error) {
+        console.error("Errore nell'aggiornamento dell'appuntamento:", error);
+        toast({
+          title: "Errore",
+          description: "Errore nell'aggiornamento dell'appuntamento",
+          variant: "destructive"
+        });
+        return;
+      }
   
-  const getFilteredAppointments = () => {
-    if (!date) return [];
-    
-    const dateString = date.toISOString().split('T')[0];
-    
-    let filtered = appointments.filter(appointment => {
-      const appointmentDate = new Date(appointment.datetime).toISOString().split('T')[0];
-      return appointmentDate === dateString;
-    });
-    
-    if (typeFilter !== 'all') {
-      filtered = filtered.filter(appointment => appointment.type === typeFilter);
+      fetchAppointments();
+      toast({
+        title: "Successo",
+        description: "Appuntamento aggiornato con successo",
+      });
+    } catch (error) {
+      console.error("Errore durante l'aggiornamento dell'appuntamento:", error);
+      toast({
+        title: "Errore",
+        description: "Errore durante l'aggiornamento dell'appuntamento",
+        variant: "destructive"
+      });
     }
-    
-    return filtered.sort((a, b) => {
-      return new Date(a.datetime).getTime() - new Date(b.datetime).getTime();
-    });
   };
+
+  const handleDeleteAppointment = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('appuntamenti')
+        .delete()
+        .eq('id', id);
   
-  const todayAppointments = getFilteredAppointments();
+      if (error) {
+        console.error("Errore nell'eliminazione dell'appuntamento:", error);
+        toast({
+          title: "Errore",
+          description: "Errore nell'eliminazione dell'appuntamento",
+          variant: "destructive"
+        });
+        return;
+      }
   
+      fetchAppointments();
+      toast({
+        title: "Successo",
+        description: "Appuntamento eliminato con successo",
+      });
+    } catch (error) {
+      console.error("Errore durante l'eliminazione dell'appuntamento:", error);
+      toast({
+        title: "Errore",
+        description: "Errore durante l'eliminazione dell'appuntamento",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
-    <MainLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold">Calendario Appuntamenti</h1>
-            <p className="text-gray-500">
-              {isVenditore 
-                ? "Visualizza i tuoi appuntamenti assegnati"
-                : "Gestisci sopralluoghi, installazioni e riunioni"}
-            </p>
-            {isVenditore && venditoreId && (
-              <p className="text-sm text-blue-600 mt-1">
-                Stai visualizzando solo i tuoi appuntamenti
-              </p>
-            )}
+    <div className="container mx-auto py-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {/* Calendar Section */}
+        <div className="md:col-span-1">
+          <div className="w-full">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !selectedDate && "text-muted-foreground",
+                  )}
+                >
+                  <Calendar className="mr-2 h-4 w-4" />
+                  {selectedDate ? (
+                    format(selectedDate, "PPP")
+                  ) : (
+                    <span>Seleziona una data</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarUI
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={handleDateSelect}
+                  disabled={(date) =>
+                    date > new Date()
+                  }
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
-          
           {!isVenditore && (
-            <AppointmentDialog onAddAppointment={handleAddAppointment} />
+            <div className="mt-4">
+              <Label htmlFor="venditore">Seleziona Venditore</Label>
+              <Select onValueChange={(value) => setSelectedVenditoreId(value)} value={selectedVenditoreId || ''}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tutti i venditori" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Tutti i venditori</SelectItem>
+                  {availableVenditori.map((venditore) => (
+                    <SelectItem key={venditore.id} value={venditore.id}>
+                      {venditore.nome} {venditore.cognome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           )}
         </div>
-        
-        <div className="flex flex-col md:flex-row gap-6">
-          <div className="md:w-[380px]">
-            <AppointmentsCalendar
-              date={date}
-              onDateSelect={setDate}
-              typeFilter={typeFilter}
-              onTypeFilterChange={setTypeFilter}
-            />
-          </div>
-          
-          <div className="flex-1">
-            <AppointmentsList
-              appointments={todayAppointments}
-              selectedAppointment={selectedAppointment}
-              onSelectAppointment={setSelectedAppointment}
-              onCompleteAppointment={!isVenditore ? handleCompleteAppointment : undefined}
-              readOnly={isVenditore}
-            />
-          </div>
+
+        {/* Appointments List Section */}
+        <div className="md:col-span-2">
+          <AppointmentsList
+            appointments={appointments}
+            selectedAppointment={selectedAppointment}
+            onSelectAppointment={handleAppointmentSelect}
+            readOnly={isVenditore}
+          />
+        </div>
+
+        {/* Appointment Details and Add Appointment Section */}
+        <div className="md:col-span-1">
+          <AddAppointmentDialog onAddAppointment={handleAddAppointment} />
         </div>
       </div>
-    </MainLayout>
+    </div>
   );
 };
 
