@@ -32,7 +32,48 @@ export const useVenditori = () => {
 
   const createVenditore = async (formData: VenditoreFormData) => {
     try {
-      // 1. Creare l'utente in auth.users
+      // Prima verifichiamo se l'utente esiste già
+      const { data: existingUser, error: searchError } = await supabase
+        .from('profiles')
+        .select('id, email')
+        .eq('email', formData.email)
+        .single();
+
+      if (searchError && !searchError.message.includes('No rows found')) {
+        // Se c'è un errore diverso da "No rows found", lo gestiamo
+        throw searchError;
+      }
+
+      if (existingUser) {
+        // Utente già esistente, verifichiamo se è già un venditore
+        if (existingUser.ruolo === 'venditore') {
+          toast({
+            title: "Utente già registrato",
+            description: "Un venditore con questa email è già registrato nel sistema.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        // Aggiorniamo il ruolo dell'utente esistente a venditore
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ ruolo: 'venditore' })
+          .eq('email', formData.email);
+
+        if (updateError) throw updateError;
+
+        toast({
+          title: "Ruolo aggiornato",
+          description: "L'utente esistente è stato convertito a venditore.",
+        });
+
+        // Invalida la query per ricaricare i dati
+        await queryClient.invalidateQueries({ queryKey: ['venditori'] });
+        return;
+      }
+
+      // Se l'utente non esiste, procediamo con la creazione
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -41,14 +82,14 @@ export const useVenditori = () => {
             nome: formData.nome,
             cognome: formData.cognome,
             ruolo: 'venditore',
-            telefono: formData.telefono || null // Assicurati che telefono possa essere null
+            telefono: formData.telefono || null
           }
         }
       });
 
       if (authError) throw authError;
 
-      // 2. Verifica che l'utente sia stato creato e aggiorna esplicitamente il profilo
+      // Verifica che l'utente sia stato creato e aggiorna esplicitamente il profilo
       if (authData.user) {
         // Prima aggiungiamo la colonna telefono se non esiste
         try {
@@ -99,23 +140,34 @@ export const useVenditori = () => {
         }
       }
 
-      // 3. Visualizza messaggio di successo
+      // Visualizza messaggio di successo
       toast({
         title: "Successo",
         description: "Venditore creato con successo",
       });
 
-      // 4. Invalida la query per ricaricare i dati
+      // Invalida la query per ricaricare i dati
       await queryClient.invalidateQueries({ queryKey: ['venditori'] });
 
       return authData;
     } catch (error: any) {
       console.error('Errore nella creazione del venditore:', error);
-      toast({
-        title: "Errore",
-        description: error.message || 'Errore nella creazione del venditore',
-        variant: "destructive"
-      });
+      
+      // Gestione specifica per l'errore "User already registered"
+      if (error.message === "User already registered" || error.code === "user_already_exists") {
+        toast({
+          title: "Utente già registrato",
+          description: "Un utente con questa email è già registrato. Contattare l'amministratore per aggiornare il ruolo.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Errore",
+          description: error.message || 'Errore nella creazione del venditore',
+          variant: "destructive"
+        });
+      }
+      
       throw new Error(error.message || 'Errore nella creazione del venditore');
     }
   };
