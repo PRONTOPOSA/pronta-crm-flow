@@ -1,16 +1,20 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { VenditoreFormData, VenditoreWithProfile } from "@/types/venditori";
 
 export const fetchVenditori = async (): Promise<VenditoreWithProfile[]> => {
+  console.log('Fetching vendors...');
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
     .eq('ruolo', 'venditore')
     .order('data_creazione', { ascending: false });
 
-  if (error) throw error;
-  console.log('Venditori fetched:', data);
+  if (error) {
+    console.error('Error fetching vendors:', error);
+    throw error;
+  }
+
+  console.log('Fetched vendors:', data);
   
   // Cast the data to ensure the ruolo field is correctly typed
   const typedData = data?.map(item => ({

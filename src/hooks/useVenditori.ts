@@ -1,3 +1,4 @@
+
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import type { VenditoreFormData } from '@/types/venditori';
@@ -55,13 +56,11 @@ export const useVenditori = () => {
       if (authError) throw authError;
 
       if (authData.user) {
-        // Ensure user role is set to venditore
         await updateUserRole(authData.user.id);
-        // Make sure the vendor record exists in the 'venditori' table
         await ensureVenditoreRecord(authData.user.id);
         
         console.log('Created new vendor record with ID:', authData.user.id);
-
+        
         toast({
           title: "Successo",
           description: "Venditore creato con successo",
@@ -71,7 +70,6 @@ export const useVenditori = () => {
       }
     } catch (error: any) {
       console.error('Errore nella creazione del venditore:', error);
-      
       toast({
         title: "Errore",
         description: error.message || 'Errore nella creazione del venditore',
