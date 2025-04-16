@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
-import { Trash2 } from 'lucide-react';
+import { Trash2, UserX } from 'lucide-react';
 import type { User } from '@/types/users';
 
 type VenditoriTableProps = {
@@ -36,7 +36,7 @@ export const VenditoriTable = ({
           <TableHead>Nome</TableHead>
           <TableHead>Cognome</TableHead>
           <TableHead>Email</TableHead>
-          <TableHead>Ruolo</TableHead>
+          <TableHead>Stato</TableHead>
           <TableHead className="text-right">Azioni</TableHead>
         </TableRow>
       </TableHeader>
@@ -57,15 +57,20 @@ export const VenditoriTable = ({
               <TableCell>{venditore.nome}</TableCell>
               <TableCell>{venditore.cognome}</TableCell>
               <TableCell>{venditore.email}</TableCell>
-              <TableCell>Venditore</TableCell>
+              <TableCell>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  Venditore Attivo
+                </span>
+              </TableCell>
               <TableCell className="text-right">
                 {isAdmin && (
                   <Button 
                     variant="ghost" 
                     size="icon" 
                     onClick={() => onDelete(venditore.id)}
+                    title="Rimuovi venditore"
                   >
-                    <Trash2 className="h-4 w-4 text-red-500" />
+                    <UserX className="h-4 w-4 text-red-500" />
                   </Button>
                 )}
               </TableCell>

@@ -51,7 +51,8 @@ export const useVenditori = () => {
           description: "L'utente esistente è stato convertito a venditore.",
         });
       } else {
-        // Create new user
+        // Create new user with a default password
+        // We're using signUp even though they won't actually use the account directly
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
@@ -109,13 +110,13 @@ export const useVenditori = () => {
 
       toast({
         title: "Successo",
-        description: "Venditore eliminato con successo",
+        description: "Venditore rimosso con successo",
       });
     } catch (error: any) {
-      console.error('Errore nell\'eliminazione del venditore:', error);
+      console.error('Errore nella rimozione del venditore:', error);
       toast({
         title: "Errore",
-        description: error.message || "Errore nell'eliminazione del venditore",
+        description: error.message || "Errore nella rimozione del venditore",
         variant: "destructive"
       });
     }

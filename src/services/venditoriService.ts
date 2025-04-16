@@ -65,6 +65,7 @@ export const ensureVenditoreRecord = async (userId: string) => {
 };
 
 export const deleteVenditoreProfile = async (userId: string) => {
+  // Prima eliminiamo il record dalla tabella venditori
   const { error: deleteVenditoreError } = await supabase
     .from('venditori')
     .delete()
@@ -72,10 +73,13 @@ export const deleteVenditoreProfile = async (userId: string) => {
 
   if (deleteVenditoreError) throw deleteVenditoreError;
 
-  const { error } = await supabase
+  // Poi aggiorniamo il ruolo dell'utente a operatore invece di eliminarlo completamente
+  const { error: updateError } = await supabase
     .from('profiles')
-    .delete()
+    .update({ ruolo: 'operatore' })
     .eq('id', userId);
 
-  if (error) throw error;
+  if (updateError) throw updateError;
+
+  console.log('Venditore converted to operatore:', userId);
 };
