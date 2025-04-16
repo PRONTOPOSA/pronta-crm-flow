@@ -41,11 +41,6 @@ const UserTable = () => {
     return <UserTableLoading />;
   }
 
-  console.log('UserTable - Users:', users);
-  console.log('UserTable - isAdmin:', isAdmin);
-  console.log('UserTable - editingUser:', editingUser);
-  console.log('UserTable - editingRoles:', editingRoles);
-
   return (
     <div>
       <Table>
@@ -69,10 +64,7 @@ const UserTable = () => {
                 {editingUser === user.id ? (
                   <UserRoleSelect
                     currentRole={editingRoles[user.id] || user.ruolo}
-                    onRoleChange={(role) => {
-                      console.log(`Changing role for user ${user.id} to ${role}`);
-                      handleRoleChange(user.id, role);
-                    }}
+                    onRoleChange={(role) => handleRoleChange(user.id, role)}
                   />
                 ) : (
                   <span className="capitalize">{getRoleLabel(user.ruolo)}</span>

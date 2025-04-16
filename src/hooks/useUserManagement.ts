@@ -1,29 +1,13 @@
 
-import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-
-interface User {
-  id: string;
-  nome: string;
-  cognome: string;
-  email: string;
-  ruolo: 'admin' | 'operatore';
-  data_creazione: string;
-}
+import { useUserRoles } from './useUserRoles';
+import type { User } from '@/types/users';
 
 export const useUserManagement = () => {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const [editingUser, setEditingUser] = useState<string | null>(null);
-  const [editingRoles, setEditingRoles] = useState<Record<string, 'admin' | 'operatore'>>({});
-
-  console.log('useUserManagement - Initial State:', {
-    editingUser,
-    editingRoles
-  });
 
   const { data: currentUserProfile, isLoading: isProfileLoading } = useQuery({
     queryKey: ['currentUserProfile'],
@@ -42,7 +26,7 @@ export const useUserManagement = () => {
       console.log('Current user profile:', data);
       return data as User;
     },
-    enabled: !!user?.id // Only run this query if we have a user ID
+    enabled: !!user?.id
   });
 
   const { data: users, isLoading: isUsersLoading } = useQuery({
@@ -63,86 +47,8 @@ export const useUserManagement = () => {
     }
   });
 
-  // Explicitly check if user is admin
   const isAdmin = currentUserProfile?.ruolo === 'admin';
-  console.log('Current user is admin:', isAdmin);
-
-  const handleEditStart = (user: User) => {
-    console.log('Starting edit for user:', user);
-    setEditingUser(user.id);
-    setEditingRoles(prev => ({
-      ...prev,
-      [user.id]: user.ruolo
-    }));
-  };
-
-  const handleRoleChange = (userId: string, role: 'admin' | 'operatore') => {
-    console.log(`Changing role for user ${userId} to ${role}`);
-    setEditingRoles(prev => ({
-      ...prev,
-      [userId]: role
-    }));
-  };
-
-  const handleRoleUpdate = async (userId: string) => {
-    console.log(`Attempting to update role for user ${userId}. Admin status: ${isAdmin}`);
-
-    if (!isAdmin) {
-      toast({
-        title: "Accesso negato",
-        description: "Solo gli amministratori possono modificare i ruoli degli utenti.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const newRole = editingRoles[userId];
-    console.log(`New role for user ${userId}: ${newRole}`);
-
-    if (!newRole) {
-      toast({
-        title: "Errore",
-        description: "Ruolo non selezionato.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      console.log(`Updating role in database for user ${userId} to ${newRole}`);
-      const { error } = await supabase
-        .from('profiles')
-        .update({ ruolo: newRole })
-        .eq('id', userId);
-
-      if (error) throw error;
-
-      // Update the local users array to reflect the change immediately
-      if (users) {
-        const updatedUsers = users.map(u => 
-          u.id === userId ? { ...u, ruolo: newRole } : u
-        );
-        queryClient.setQueryData(['users'], updatedUsers);
-        console.log('Updated users array:', updatedUsers);
-      }
-
-      toast({
-        title: "Ruolo aggiornato",
-        description: "Il ruolo dell'utente è stato aggiornato con successo.",
-      });
-
-      // Refresh the data from the server
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      setEditingUser(null);
-    } catch (error: any) {
-      console.error('Error updating role:', error);
-      toast({
-        title: "Errore",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  };
+  const roleManagement = useUserRoles(isAdmin);
 
   const handleDeleteUser = async (userId: string) => {
     console.log(`Attempting to delete user ${userId}. Admin status: ${isAdmin}`);
@@ -164,20 +70,11 @@ export const useUserManagement = () => {
 
       if (error) throw error;
 
-      // Update the local users array to reflect the deletion immediately
-      if (users) {
-        const updatedUsers = users.filter(u => u.id !== userId);
-        queryClient.setQueryData(['users'], updatedUsers);
-        console.log('Updated users array after deletion:', updatedUsers);
-      }
-
       toast({
         title: "Utente eliminato",
         description: "L'utente è stato eliminato con successo.",
       });
 
-      // Refresh the data from the server
-      queryClient.invalidateQueries({ queryKey: ['users'] });
     } catch (error: any) {
       console.error('Error deleting user:', error);
       toast({
@@ -191,14 +88,9 @@ export const useUserManagement = () => {
   return {
     users,
     isLoading: isProfileLoading || isUsersLoading,
-    editingUser,
-    editingRoles,
     isAdmin,
-    handleEditStart,
-    handleRoleChange,
-    handleRoleUpdate,
     handleDeleteUser,
-    setEditingUser
+    ...roleManagement
   };
 };
 
