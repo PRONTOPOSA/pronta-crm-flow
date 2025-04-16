@@ -106,16 +106,21 @@ export const useUserManagement = () => {
 
       console.log('Successfully deleted user profile:', userId);
       
-      toast({
-        title: "Utente eliminato",
-        description: "L'utente è stato eliminato con successo.",
+      // Optimistically update the cache
+      queryClient.setQueryData(['users'], (oldData: User[] | undefined) => {
+        return oldData ? oldData.filter(user => user.id !== userId) : [];
       });
-
-      // Immediately invalidate relevant queries to update the UI
+      
+      // Then invalidate the queries to ensure data consistency
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['users'] }),
         queryClient.invalidateQueries({ queryKey: ['venditori'] })
       ]);
+
+      toast({
+        title: "Utente eliminato",
+        description: "L'utente è stato eliminato con successo.",
+      });
 
     } catch (error: any) {
       console.error('Error deleting user:', error);
@@ -182,4 +187,3 @@ export const useUserManagement = () => {
     ...roleManagement
   };
 };
-
