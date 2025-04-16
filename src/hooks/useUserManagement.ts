@@ -1,5 +1,5 @@
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,6 +8,7 @@ import type { User } from '@/types/users';
 
 export const useUserManagement = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   
   const { data: currentUserProfile, isLoading: isProfileLoading } = useQuery({
     queryKey: ['currentUserProfile', user?.id],
@@ -80,8 +81,40 @@ export const useUserManagement = () => {
         description: "L'utente è stato eliminato con successo.",
       });
 
+      // Aggiorna la lista utenti dopo l'eliminazione
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+
     } catch (error: any) {
       console.error('Error deleting user:', error);
+      toast({
+        title: "Errore",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Funzione per impostare manualmente l'utente corrente come admin
+  const promoteToAdmin = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ ruolo: 'admin' })
+        .eq('id', user.id);
+      
+      if (error) throw error;
+      
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      
+      toast({
+        title: "Ruolo aggiornato",
+        description: "Sei stato promosso ad amministratore.",
+      });
+    } catch (error: any) {
+      console.error('Error promoting to admin:', error);
       toast({
         title: "Errore",
         description: error.message,
@@ -95,6 +128,7 @@ export const useUserManagement = () => {
     isLoading: isProfileLoading || isUsersLoading,
     isAdmin,
     handleDeleteUser,
+    promoteToAdmin,
     ...roleManagement
   };
 };

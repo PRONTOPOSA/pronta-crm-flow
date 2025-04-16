@@ -2,10 +2,11 @@
 import React, { useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2, Check, X } from 'lucide-react';
+import { Edit, Trash2, Check, X, ShieldAlert } from 'lucide-react';
 import { UserRoleSelect } from './UserRoleSelect';
 import { UserTableLoading } from './UserTableLoading';
 import { useUserManagement } from '@/hooks/useUserManagement';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const UserTable = () => {
   const {
@@ -18,7 +19,8 @@ const UserTable = () => {
     handleRoleChange,
     handleRoleUpdate,
     handleDeleteUser,
-    setEditingUser
+    setEditingUser,
+    promoteToAdmin
   } = useUserManagement();
 
   // Log isAdmin all'inizializzazione e quando cambia
@@ -50,7 +52,25 @@ const UserTable = () => {
   console.log("UserTable rendering. Admin status:", isAdmin);
 
   return (
-    <div>
+    <div className="space-y-4">
+      {!isAdmin && (
+        <div className="mb-4">
+          <Alert className="bg-amber-50 border-amber-200">
+            <AlertDescription className="flex items-center justify-between">
+              <span>Non hai i privilegi di amministratore. Vuoi promuoverti ad amministratore?</span>
+              <Button 
+                variant="outline" 
+                className="ml-4 bg-amber-100 hover:bg-amber-200 border-amber-300"
+                onClick={promoteToAdmin}
+              >
+                <ShieldAlert className="mr-2 h-4 w-4" />
+                Diventa Amministratore
+              </Button>
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
+      
       <Table>
         <TableHeader>
           <TableRow>
