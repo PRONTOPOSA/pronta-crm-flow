@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/contexts/AuthContext";
 import Dashboard from "./pages/Dashboard";
 import Contatti from "./pages/Contatti";
 import Appuntamenti from "./pages/Appuntamenti";
@@ -13,6 +14,7 @@ import Impostazioni from "./pages/Impostazioni";
 import Comunicazioni from "./pages/Comunicazioni";
 import Reportistica from "./pages/Reportistica";
 import NotFound from "./pages/NotFound";
+import Auth from "./pages/Auth";
 
 const queryClient = new QueryClient();
 
@@ -22,18 +24,21 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/contatti" element={<Contatti />} />
-          <Route path="/appuntamenti" element={<Appuntamenti />} />
-          <Route path="/progetti" element={<Progetti />} />
-          <Route path="/venditori" element={<Venditori />} />
-          <Route path="/impostazioni" element={<Impostazioni />} />
-          <Route path="/comunicazioni" element={<Comunicazioni />} />
-          <Route path="/reportistica" element={<Reportistica />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/contatti" element={<Contatti />} />
+            <Route path="/appuntamenti" element={<Appuntamenti />} />
+            <Route path="/progetti" element={<Progetti />} />
+            <Route path="/venditori" element={<Venditori />} />
+            <Route path="/impostazioni" element={<Impostazioni />} />
+            <Route path="/comunicazioni" element={<Comunicazioni />} />
+            <Route path="/reportistica" element={<Reportistica />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

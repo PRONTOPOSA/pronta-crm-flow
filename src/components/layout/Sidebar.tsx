@@ -13,17 +13,29 @@ import {
   UserCircle
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { signOut } = useAuth();
 
-  const handleLogout = () => {
-    toast({
-      title: "Logout effettuato",
-      description: "Sei stato disconnesso con successo.",
-    });
-    console.log("Logout clicked");
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Logout effettuato",
+        description: "Sei stato disconnesso con successo.",
+      });
+      navigate('/auth');
+    } catch (error) {
+      console.error("Errore durante il logout:", error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore durante il logout",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
