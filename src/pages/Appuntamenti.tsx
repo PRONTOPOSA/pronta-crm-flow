@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { AppointmentsList } from '@/components/appointments/AppointmentsList';
-import { AppointmentDialog } from '@/components/appointments/AppointmentDialog'; // Use AppointmentDialog instead
+import { AppointmentDialog } from '@/components/appointments/AppointmentDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/contexts/AuthContext';
@@ -187,14 +187,14 @@ const Appuntamenti = () => {
             <div className="mt-4">
               <Label htmlFor="venditore">Filtra per venditore:</Label>
               <Select 
-                value={selectedVenditoreId} 
-                onValueChange={(value) => setSelectedVenditoreId(value)}
+                value={selectedVenditoreId || "all"} 
+                onValueChange={(value) => setSelectedVenditoreId(value === "all" ? undefined : value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Tutti i venditori" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tutti i venditori</SelectItem>
+                  <SelectItem value="all">Tutti i venditori</SelectItem>
                   {venditori.map((venditore) => (
                     <SelectItem key={venditore.id} value={venditore.id}>
                       {venditore.nome} {venditore.cognome}
