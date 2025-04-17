@@ -21,6 +21,7 @@ import { ContactFilters } from '@/components/contacts/ContactFilters';
 import { ContactTable } from '@/components/contacts/ContactTable';
 import { ContactFormData } from '@/components/contacts/types';
 
+// Fixed data structure to ensure correct field mapping
 const initialData = {
   clientiData: [
     { id: '1', nome: 'Marco Rossi', tipo: 'privato', email: 'marco.rossi@email.it', telefono: '333 1234567', citta: 'Milano', stato: 'attivo' },
