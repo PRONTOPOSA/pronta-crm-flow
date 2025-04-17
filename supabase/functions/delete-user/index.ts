@@ -1,11 +1,11 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.1';
-import { corsHeaders } from '../_shared/cors.ts';
 
 const supabaseUrl = 'https://dyxooavjzwqwjxgjwxaj.supabase.co';
 const supabaseServiceRole = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 
-export const corsHeaders = {
+// Definizione dei CORS headers
+const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
