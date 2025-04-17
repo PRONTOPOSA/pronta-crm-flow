@@ -14,17 +14,15 @@ import {
   FormControl,
   FormMessage,
 } from '@/components/ui/form';
-import type { VenditoreFormData } from '@/types/venditori';
 
 const venditoreSchema = z.object({
   nome: z.string().min(2, { message: 'Il nome deve avere almeno 2 caratteri' }),
   cognome: z.string().min(2, { message: 'Il cognome deve avere almeno 2 caratteri' }),
-  email: z.string().email({ message: 'Email non valida' }),
-  password: z.string().min(6, { message: 'La password deve avere almeno 6 caratteri' })
+  email: z.string().email({ message: 'Email non valida' })
 });
 
 type VenditoreFormProps = {
-  onSubmit: (data: VenditoreFormData) => Promise<void>;
+  onSubmit: (data: z.infer<typeof venditoreSchema>) => Promise<void>;
   onCancel: () => void;
 };
 
@@ -34,8 +32,7 @@ export const VenditoreForm = ({ onSubmit, onCancel }: VenditoreFormProps) => {
     defaultValues: {
       nome: '',
       cognome: '',
-      email: '',
-      password: ''
+      email: ''
     }
   });
 
@@ -78,19 +75,6 @@ export const VenditoreForm = ({ onSubmit, onCancel }: VenditoreFormProps) => {
               <FormLabel>Email</FormLabel>
               <FormControl>
                 <Input type="email" placeholder="Email" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input type="password" placeholder="Password" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

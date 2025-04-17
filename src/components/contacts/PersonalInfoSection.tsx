@@ -53,6 +53,7 @@ export const PersonalInfoSection = ({
             name="telefono" 
             value={telefono} 
             onChange={onChange}
+            placeholder="Inserisci numero di telefono"
           />
         </div>
         <div className="grid gap-2">
