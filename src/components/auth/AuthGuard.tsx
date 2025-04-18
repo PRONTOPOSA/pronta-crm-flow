@@ -1,9 +1,14 @@
-
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
-export const AuthGuard = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+interface AuthGuardProps {
+  children: React.ReactNode;
+  allowedRoles?: ('admin' | 'operatore' | 'venditore')[];
+}
+
+export const AuthGuard = ({ children, allowedRoles }: AuthGuardProps) => {
+  const { user, loading, currentUserProfile } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -15,7 +20,19 @@ export const AuthGuard = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (!user) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/auth" replace state={{ from: location }} />;
+  }
+
+  if (allowedRoles && allowedRoles.length > 0 && currentUserProfile) {
+    const userRole = currentUserProfile.ruolo as 'admin' | 'operatore' | 'venditore';
+    
+    if (!allowedRoles.includes(userRole)) {
+      if (userRole === 'admin') {
+        return <>{children}</>;
+      }
+      
+      return <Navigate to="/dashboard" replace />;
+    }
   }
 
   return <>{children}</>;
