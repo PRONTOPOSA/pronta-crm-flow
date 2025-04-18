@@ -18,11 +18,7 @@ import { useAuth } from '@/contexts/AuthContext';
 const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut, currentUserProfile } = useAuth();
-  
-  const userRole = currentUserProfile?.ruolo || 'operatore';
-  const isAdmin = userRole === 'admin';
-  const isVenditore = userRole === 'venditore';
+  const { signOut } = useAuth();
 
   const handleLogout = async () => {
     try {
@@ -46,44 +42,23 @@ const Sidebar = () => {
     <div className="h-screen w-64 bg-primary text-white flex flex-col shadow-lg hidden md:flex">
       <div className="p-4 border-b border-blue-800">
         <h1 className="text-xl font-bold text-center">ProntoPosa CRM</h1>
-        {currentUserProfile && (
-          <p className="text-sm text-center text-gray-300 mt-1">
-            {currentUserProfile.nome} {currentUserProfile.cognome} - {userRole === 'admin' ? 'Amministratore' : userRole === 'venditore' ? 'Venditore' : 'Operatore'}
-          </p>
-        )}
       </div>
       
       <nav className="flex-1 overflow-y-auto py-4">
         <ul className="space-y-1 px-2">
           <SidebarItem to="/dashboard" icon={<LayoutDashboard size={20} />} label="Dashboard" active={location.pathname === '/dashboard'} />
-          
-          {/* Menu items accessible to admin and operators only */}
-          {!isVenditore && (
-            <SidebarItem to="/contatti" icon={<Users size={20} />} label="Contatti" active={location.pathname === '/contatti'} />
-          )}
-          
-          {/* Appointment menu visible to all roles */}
+          <SidebarItem to="/contatti" icon={<Users size={20} />} label="Contatti" active={location.pathname === '/contatti'} />
           <SidebarItem to="/appuntamenti" icon={<Calendar size={20} />} label="Calendario" active={location.pathname === '/appuntamenti'} />
-          
-          {/* Projects visible to all roles */}
           <SidebarItem to="/progetti" icon={<FileText size={20} />} label="Progetti" active={location.pathname === '/progetti'} />
-          
-          {/* Admin only menu items */}
-          {isAdmin && (
-            <>
-              <SidebarItem to="/venditori" icon={<UserCircle size={20} />} label="Venditori" active={location.pathname === '/venditori'} />
-              <SidebarItem to="/comunicazioni" icon={<Mail size={20} />} label="Comunicazioni" active={location.pathname === '/comunicazioni'} />
-              <SidebarItem to="/reportistica" icon={<PieChart size={20} />} label="Reportistica" active={location.pathname === '/reportistica'} />
-            </>
-          )}
+          <SidebarItem to="/venditori" icon={<UserCircle size={20} />} label="Venditori" active={location.pathname === '/venditori'} />
+          <SidebarItem to="/comunicazioni" icon={<Mail size={20} />} label="Comunicazioni" active={location.pathname === '/comunicazioni'} />
+          <SidebarItem to="/reportistica" icon={<PieChart size={20} />} label="Reportistica" active={location.pathname === '/reportistica'} />
         </ul>
       </nav>
       
       <div className="p-4 border-t border-blue-800">
         <ul className="space-y-1 px-2">
-          {isAdmin && (
-            <SidebarItem to="/impostazioni" icon={<Settings size={20} />} label="Impostazioni" active={location.pathname === '/impostazioni'} />
-          )}
+          <SidebarItem to="/impostazioni" icon={<Settings size={20} />} label="Impostazioni" active={location.pathname === '/impostazioni'} />
           <li 
             className="flex items-center px-4 py-2 text-gray-300 hover:bg-blue-800 hover:text-white rounded-md cursor-pointer transition-colors"
             onClick={handleLogout}

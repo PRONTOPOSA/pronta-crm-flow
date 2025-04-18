@@ -12,24 +12,57 @@ import {
   DialogDescription
 } from '@/components/ui/dialog';
 import { PlusCircle, Search, Users } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
 import { VenditoriTable } from '@/components/venditori/VenditoriTable';
 import { VenditoreForm } from '@/components/venditori/VenditoreForm';
-import { useVenditori } from '@/hooks/useVenditori';
-import { useUserManagement } from '@/hooks/useUserManagement';
+
+// Venditore mock data
+const initialVenditori = [
+  { id: '1', nome: 'Marco', cognome: 'Rossi', email: 'marco.rossi@example.com' },
+  { id: '2', nome: 'Laura', cognome: 'Bianchi', email: 'laura.bianchi@example.com' },
+  { id: '3', nome: 'Giuseppe', cognome: 'Verdi', email: 'giuseppe.verdi@example.com' }
+];
 
 const Venditori = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const { venditori, isLoading, createVenditore, deleteVenditore } = useVenditori();
-  const { isAdmin } = useUserManagement();
+  const [venditori, setVenditori] = useState(initialVenditori);
+  const { toast } = useToast();
 
   const handleSubmit = async (formData: any) => {
     try {
-      await createVenditore(formData);
+      // Add venditore to our local state
+      const newVenditore = {
+        id: Date.now().toString(),
+        nome: formData.nome,
+        cognome: formData.cognome,
+        email: formData.email
+      };
+      
+      setVenditori([...venditori, newVenditore]);
+      
+      toast({
+        title: "Successo",
+        description: "Venditore creato con successo",
+      });
+      
       setOpenDialog(false);
     } catch (error) {
       console.error("Errore durante la creazione del venditore:", error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore durante la creazione del venditore",
+        variant: "destructive"
+      });
     }
+  };
+  
+  const handleDelete = (id: string) => {
+    setVenditori(venditori.filter(v => v.id !== id));
+    toast({
+      title: "Successo",
+      description: "Venditore rimosso con successo",
+    });
   };
 
   return (
@@ -41,12 +74,10 @@ const Venditori = () => {
             <p className="text-gray-500">Qui puoi registrare i venditori che riceveranno gli appuntamenti dai lead</p>
           </div>
           
-          {isAdmin && (
-            <Button onClick={() => setOpenDialog(true)}>
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Nuovo Venditore
-            </Button>
-          )}
+          <Button onClick={() => setOpenDialog(true)}>
+            <PlusCircle className="h-4 w-4 mr-2" />
+            Nuovo Venditore
+          </Button>
         </div>
         
         <Card>
@@ -70,9 +101,9 @@ const Venditori = () => {
           <CardContent>
             <VenditoriTable
               venditori={venditori}
-              isLoading={isLoading}
-              isAdmin={isAdmin}
-              onDelete={deleteVenditore}
+              isLoading={false}
+              isAdmin={true} // Always allow editing
+              onDelete={handleDelete}
               searchQuery={searchQuery}
             />
           </CardContent>

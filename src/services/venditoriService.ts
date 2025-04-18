@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import type { VenditoreFormData, VenditoreWithProfile } from "@/types/venditori";
 
@@ -83,23 +82,13 @@ export const ensureVenditoreRecord = async (userId: string) => {
 
 export const deleteVenditoreProfile = async (userId: string) => {
   try {
-    // First delete the venditore record
-    const { error: deleteVenditoreError } = await supabase
-      .from('venditori')
-      .delete()
-      .eq('user_id', userId);
+    const { error } = await supabase.functions.invoke('delete-user', {
+      body: { userId }
+    });
 
-    if (deleteVenditoreError) throw deleteVenditoreError;
+    if (error) throw error;
 
-    // Then update the user role back to operatore
-    const { error: updateRoleError } = await supabase
-      .from('profiles')
-      .update({ ruolo: 'operatore' })
-      .eq('id', userId);
-
-    if (updateRoleError) throw updateRoleError;
-
-    console.log('Successfully downgraded venditore profile:', userId);
+    console.log('Successfully deleted venditore profile and user:', userId);
     return true;
   } catch (error) {
     console.error('Error deleting venditore:', error);
