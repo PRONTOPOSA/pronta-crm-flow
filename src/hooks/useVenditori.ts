@@ -1,3 +1,4 @@
+
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import type { VenditoreFormData } from '@/types/venditori';
@@ -39,7 +40,7 @@ export const useVenditori = () => {
         return;
       }
 
-      // Create new user
+      // Create new user with password and venditore role
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -47,7 +48,7 @@ export const useVenditori = () => {
           data: {
             nome: formData.nome,
             cognome: formData.cognome,
-            ruolo: 'venditore' // Set initial role
+            ruolo: 'venditore'
           }
         }
       });

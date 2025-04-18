@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { VenditoreFormData } from '@/types/venditori';
+import { toast } from '@/components/ui/use-toast';
 
 interface VenditoreFormProps {
   onSubmit: (data: VenditoreFormData) => void;
