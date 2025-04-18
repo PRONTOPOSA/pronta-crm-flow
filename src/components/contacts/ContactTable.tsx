@@ -47,11 +47,9 @@ export const ContactTable = ({ contacts, type }: ContactTableProps) => {
                   {type !== 'clienti' && <Building className="h-4 w-4 mr-2 text-gray-500" />}
                   {contact.nome}
                 </TableCell>
-                <TableCell>
-                  <div className="flex items-center">
-                    <Mail className="h-4 w-4 mr-2 text-gray-500" />
-                    {contact.email}
-                  </div>
+                <TableCell className="flex items-center">
+                  <Mail className="h-4 w-4 mr-2 text-gray-500" />
+                  {contact.email}
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center">

@@ -1,7 +1,6 @@
-
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRoles } from './useUserRoles';
 import type { User } from '@/types/users';
@@ -10,7 +9,6 @@ import { useState, useEffect } from 'react';
 export const useUserManagement = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const [localIsAdmin, setLocalIsAdmin] = useState<boolean>(false);
   
   const { data: currentUserProfile, isLoading: isProfileLoading } = useQuery({
@@ -78,25 +76,6 @@ export const useUserManagement = () => {
     }
 
     try {
-      // First check if this user has a venditore record that needs to be deleted
-      const { data: venditoreData } = await supabase
-        .from('venditori')
-        .select('id')
-        .eq('user_id', userId)
-        .maybeSingle();
-      
-      if (venditoreData) {
-        // If user is a venditore, delete their record from the venditori table first
-        const { error: deleteVenditoreError } = await supabase
-          .from('venditori')
-          .delete()
-          .eq('user_id', userId);
-          
-        if (deleteVenditoreError) throw deleteVenditoreError;
-        console.log('Deleted venditore record for user:', userId);
-      }
-
-      // Now delete the user profile
       const { error } = await supabase
         .from('profiles')
         .delete()
@@ -104,29 +83,19 @@ export const useUserManagement = () => {
 
       if (error) throw error;
 
-      console.log('Successfully deleted user profile:', userId);
-      
-      // Optimistically update the cache
-      queryClient.setQueryData(['users'], (oldData: User[] | undefined) => {
-        return oldData ? oldData.filter(user => user.id !== userId) : [];
-      });
-      
-      // Then invalidate the queries to ensure data consistency
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['users'] }),
-        queryClient.invalidateQueries({ queryKey: ['venditori'] })
-      ]);
-
       toast({
         title: "Utente eliminato",
         description: "L'utente è stato eliminato con successo.",
       });
 
+      // Aggiorna la lista utenti dopo l'eliminazione
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+
     } catch (error: any) {
       console.error('Error deleting user:', error);
       toast({
         title: "Errore",
-        description: error.message || "Si è verificato un errore durante l'eliminazione dell'utente",
+        description: error.message,
         variant: "destructive"
       });
     }

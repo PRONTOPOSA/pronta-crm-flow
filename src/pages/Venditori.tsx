@@ -12,57 +12,24 @@ import {
   DialogDescription
 } from '@/components/ui/dialog';
 import { PlusCircle, Search, Users } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast";
-import { VenditoriTable } from '@/components/venditori/VenditoriTable';
+import { useUserManagement } from '@/hooks/useUserManagement';
+import { useVenditori } from '@/hooks/useVenditori';
 import { VenditoreForm } from '@/components/venditori/VenditoreForm';
-
-// Venditore mock data
-const initialVenditori = [
-  { id: '1', nome: 'Marco', cognome: 'Rossi', email: 'marco.rossi@example.com' },
-  { id: '2', nome: 'Laura', cognome: 'Bianchi', email: 'laura.bianchi@example.com' },
-  { id: '3', nome: 'Giuseppe', cognome: 'Verdi', email: 'giuseppe.verdi@example.com' }
-];
+import { VenditoriTable } from '@/components/venditori/VenditoriTable';
 
 const Venditori = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [venditori, setVenditori] = useState(initialVenditori);
-  const { toast } = useToast();
+  const { isAdmin, currentUserProfile } = useUserManagement();
+  const { venditori, isLoading, createVenditore, deleteVenditore } = useVenditori();
 
   const handleSubmit = async (formData: any) => {
     try {
-      // Add venditore to our local state
-      const newVenditore = {
-        id: Date.now().toString(),
-        nome: formData.nome,
-        cognome: formData.cognome,
-        email: formData.email
-      };
-      
-      setVenditori([...venditori, newVenditore]);
-      
-      toast({
-        title: "Successo",
-        description: "Venditore creato con successo",
-      });
-      
+      await createVenditore(formData);
       setOpenDialog(false);
     } catch (error) {
       console.error("Errore durante la creazione del venditore:", error);
-      toast({
-        title: "Errore",
-        description: "Si è verificato un errore durante la creazione del venditore",
-        variant: "destructive"
-      });
     }
-  };
-  
-  const handleDelete = (id: string) => {
-    setVenditori(venditori.filter(v => v.id !== id));
-    toast({
-      title: "Successo",
-      description: "Venditore rimosso con successo",
-    });
   };
 
   return (
@@ -71,13 +38,15 @@ const Venditori = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold">Gestione Venditori</h1>
-            <p className="text-gray-500">Qui puoi registrare i venditori che riceveranno gli appuntamenti dai lead</p>
+            <p className="text-gray-500">Questa sezione è dedicata esclusivamente alla gestione dei venditori</p>
           </div>
           
-          <Button onClick={() => setOpenDialog(true)}>
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Nuovo Venditore
-          </Button>
+          {(isAdmin || currentUserProfile?.ruolo === 'operatore') && (
+            <Button onClick={() => setOpenDialog(true)}>
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Nuovo Venditore
+            </Button>
+          )}
         </div>
         
         <Card>
@@ -101,9 +70,9 @@ const Venditori = () => {
           <CardContent>
             <VenditoriTable
               venditori={venditori}
-              isLoading={false}
-              isAdmin={true} // Always allow editing
-              onDelete={handleDelete}
+              isLoading={isLoading}
+              isAdmin={isAdmin}
+              onDelete={deleteVenditore}
               searchQuery={searchQuery}
             />
           </CardContent>
@@ -115,7 +84,7 @@ const Venditori = () => {
           <DialogHeader>
             <DialogTitle>Nuovo Venditore</DialogTitle>
             <DialogDescription>
-              Inserisci i dati del nuovo venditore. I venditori potranno accedere per controllare i propri appuntamenti.
+              Inserisci i dati del nuovo venditore da aggiungere al sistema.
             </DialogDescription>
           </DialogHeader>
           <VenditoreForm

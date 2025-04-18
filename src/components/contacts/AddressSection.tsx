@@ -20,18 +20,16 @@ export const AddressSection = ({
 }: AddressSectionProps) => {
   return (
     <div className="grid gap-4">
-      <div className="grid gap-2">
-        <Label htmlFor="indirizzo">Indirizzo</Label>
-        <Input 
-          id="indirizzo" 
-          name="indirizzo" 
-          value={indirizzo} 
-          onChange={onChange}
-          placeholder="Via/Piazza, numero civico"
-        />
-      </div>
-      
       <div className="grid grid-cols-3 gap-4">
+        <div className="grid gap-2">
+          <Label htmlFor="indirizzo">Indirizzo</Label>
+          <Input 
+            id="indirizzo" 
+            name="indirizzo" 
+            value={indirizzo} 
+            onChange={onChange}
+          />
+        </div>
         <div className="grid gap-2">
           <Label htmlFor="citta">Città</Label>
           <Input 
@@ -39,7 +37,6 @@ export const AddressSection = ({
             name="citta" 
             value={citta} 
             onChange={onChange}
-            placeholder="Nome città"
           />
         </div>
         <div className="grid gap-2">
@@ -50,20 +47,19 @@ export const AddressSection = ({
             value={provincia} 
             onChange={onChange}
             maxLength={2}
-            placeholder="Sigla provincia"
           />
         </div>
-        <div className="grid gap-2">
-          <Label htmlFor="cap">CAP</Label>
-          <Input 
-            id="cap" 
-            name="cap" 
-            value={cap} 
-            onChange={onChange}
-            maxLength={5}
-            placeholder="Codice postale"
-          />
-        </div>
+      </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="cap">CAP</Label>
+        <Input 
+          id="cap" 
+          name="cap" 
+          value={cap} 
+          onChange={onChange}
+          maxLength={5}
+        />
       </div>
     </div>
   );

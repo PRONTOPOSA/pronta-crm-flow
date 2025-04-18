@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
@@ -10,29 +9,38 @@ import {
   Settings,
   LogOut,
   Mail,
-  UserCircle
+  UserCircle,
+  ShieldCheck
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  // Define static roles for demonstration purposes
+  const isAdmin = true; // For demo, we'll show all admin features
+  const isVenditore = true; // For demo, we'll show all vendor features
 
   const handleLogout = async () => {
     try {
-      await signOut();
+      // Se utilizzi Supabase auth, usa il metodo signOut
+      // await supabase.auth.signOut();
+      
+      // Per demo, semplicemente mostra un toast di conferma
       toast({
         title: "Logout effettuato",
         description: "Sei stato disconnesso con successo.",
       });
-      navigate('/auth');
+      
+      console.log("Logout clicked");
+      // In una applicazione reale, qui redirigeresti alla pagina di login
+      // navigate('/login');
     } catch (error) {
       console.error("Errore durante il logout:", error);
       toast({
         title: "Errore",
-        description: "Si è verificato un errore durante il logout",
+        description: "Si è verificato un errore durante il logout.",
         variant: "destructive"
       });
     }
@@ -53,6 +61,7 @@ const Sidebar = () => {
           <SidebarItem to="/venditori" icon={<UserCircle size={20} />} label="Venditori" active={location.pathname === '/venditori'} />
           <SidebarItem to="/comunicazioni" icon={<Mail size={20} />} label="Comunicazioni" active={location.pathname === '/comunicazioni'} />
           <SidebarItem to="/reportistica" icon={<PieChart size={20} />} label="Reportistica" active={location.pathname === '/reportistica'} />
+          <SidebarItem to="/users" icon={<ShieldCheck size={20} />} label="Admin e Operatori" active={location.pathname === '/users'} />
         </ul>
       </nav>
       

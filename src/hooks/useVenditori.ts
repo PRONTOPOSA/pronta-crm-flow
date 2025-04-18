@@ -1,3 +1,4 @@
+
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import type { VenditoreFormData } from '@/types/venditori';
@@ -31,48 +32,73 @@ export const useVenditori = () => {
       const existingUser = await checkExistingUser(formData.email);
 
       if (existingUser) {
-        toast({
-          title: "Utente già registrato",
-          description: "Un utente con questa email è già registrato nel sistema.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Create new user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            nome: formData.nome,
-            cognome: formData.cognome,
-            ruolo: 'venditore' // Set initial role
-          }
+        if (existingUser.ruolo === 'venditore') {
+          toast({
+            title: "Utente già registrato",
+            description: "Un venditore con questa email è già registrato nel sistema.",
+            variant: "destructive"
+          });
+          return;
         }
-      });
 
-      if (authError) throw authError;
+        // Update existing user to vendor role
+        await updateUserRole(existingUser.id);
+        // Make sure the vendor record exists in the 'venditori' table
+        await ensureVenditoreRecord(existingUser.id);
 
-      if (authData.user) {
-        // Create vendor record and update role
-        await ensureVenditoreRecord(authData.user.id);
-        
+        toast({
+          title: "Ruolo aggiornato",
+          description: "L'utente esistente è stato convertito a venditore.",
+        });
+      } else {
+        // Create new user with a default password
+        // We're using signUp even though they won't actually use the account directly
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: {
+              nome: formData.nome,
+              cognome: formData.cognome,
+              ruolo: 'venditore'
+            }
+          }
+        });
+
+        if (authError) throw authError;
+
+        if (authData.user) {
+          // Ensure user role is set to venditore
+          await updateUserRole(authData.user.id);
+          // Make sure the vendor record exists in the 'venditori' table
+          await ensureVenditoreRecord(authData.user.id);
+          
+          console.log('Created new user and vendor record with ID:', authData.user.id);
+        }
+
         toast({
           title: "Successo",
           description: "Venditore creato con successo",
         });
-
-        // Refresh the vendors list
-        await queryClient.invalidateQueries({ queryKey: ['venditori'] });
       }
+
+      await queryClient.invalidateQueries({ queryKey: ['venditori'] });
     } catch (error: any) {
       console.error('Errore nella creazione del venditore:', error);
-      toast({
-        title: "Errore",
-        description: error.message || 'Errore nella creazione del venditore',
-        variant: "destructive"
-      });
+      
+      if (error.message === "User already registered" || error.code === "user_already_exists") {
+        toast({
+          title: "Utente già registrato",
+          description: "Un utente con questa email è già registrato. Contattare l'amministratore per aggiornare il ruolo.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Errore",
+          description: error.message || 'Errore nella creazione del venditore',
+          variant: "destructive"
+        });
+      }
       throw error;
     }
   };

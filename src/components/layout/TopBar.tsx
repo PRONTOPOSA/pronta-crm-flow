@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Bell, Search, Menu, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -14,12 +13,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 
 const TopBar = () => {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const { user, signOut } = useAuth();
-  const navigate = useNavigate();
   
   const handleLogout = async () => {
     try {
@@ -28,7 +25,6 @@ const TopBar = () => {
         title: "Logout effettuato",
         description: "Sei stato disconnesso con successo.",
       });
-      navigate('/auth');
     } catch (error: any) {
       console.error("Errore durante il logout:", error);
       toast({
@@ -88,7 +84,7 @@ const TopBar = () => {
                 <Avatar className="h-9 w-9">
                   <AvatarImage src="" />
                   <AvatarFallback className="bg-primary text-white">
-                    {user?.email?.charAt(0).toUpperCase() || 'U'}
+                    {user?.email?.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
               </Button>
@@ -97,7 +93,7 @@ const TopBar = () => {
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">
-                    {user?.email || 'Utente'}
+                    {user?.email}
                   </p>
                 </div>
               </DropdownMenuLabel>

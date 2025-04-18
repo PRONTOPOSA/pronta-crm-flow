@@ -1,227 +1,169 @@
-
 import React, { useState, useEffect } from 'react';
-import { Calendar } from 'lucide-react';
-import { Calendar as CalendarUI } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import MainLayout from '@/components/layout/MainLayout';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+import { AppointmentDialog, AppointmentFormData } from '@/components/appointments/AppointmentDialog';
+import { toast } from '@/components/ui/use-toast';
+import { AppointmentsCalendar } from '@/components/appointments/AppointmentsCalendar';
 import { AppointmentsList } from '@/components/appointments/AppointmentsList';
-import { AppointmentDialog } from '@/components/appointments/AppointmentDialog';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { useUser } from '@/contexts/AuthContext';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AppointmentFormData } from '@/components/appointments/types';
+
+// Initial mock data for appointments
+const initialAppointments = [
+  { 
+    id: '1', 
+    title: 'Sopralluogo per infissi', 
+    client: 'Marco Rossi',
+    type: 'sopralluogo',
+    datetime: '2025-04-15T10:00:00',
+    endtime: '2025-04-15T11:30:00',
+    location: 'Via Roma 123, Milano',
+    technician: 'Luca Bianchi',
+    notes: 'Cliente interessato alla sostituzione di tutti gli infissi del primo piano.',
+    venditoreId: '1'
+  },
+  { 
+    id: '2', 
+    title: 'Installazione finestre', 
+    client: 'Laura Bianchi',
+    type: 'installazione',
+    datetime: '2025-04-15T14:00:00',
+    endtime: '2025-04-15T18:00:00',
+    location: 'Via Verdi 45, Roma',
+    technician: 'Mario Verdi',
+    notes: 'Portare tutti gli strumenti necessari e i 3 infissi già pronti.',
+    venditoreId: '2'
+  },
+  { 
+    id: '3', 
+    title: 'Riunione con Costruzioni Veloci', 
+    client: 'Costruzioni Veloci SRL',
+    type: 'riunione',
+    datetime: '2025-04-16T09:30:00',
+    endtime: '2025-04-16T10:30:00',
+    location: 'Sede aziendale',
+    technician: 'Direttore Tecnico',
+    notes: 'Discutere della collaborazione sul progetto di via Milano.'
+  },
+  { 
+    id: '4', 
+    title: 'Sopralluogo appartamento', 
+    client: 'Giuseppe Verdi',
+    type: 'sopralluogo',
+    datetime: '2025-04-17T11:00:00',
+    endtime: '2025-04-17T12:30:00',
+    location: 'Via Napoli 67, Bologna',
+    technician: 'Luca Bianchi',
+    notes: 'Cliente interessato a porte interne e portoncino.'
+  },
+  { 
+    id: '5', 
+    title: 'Consegna materiale', 
+    client: 'Progetti Edilizi SpA',
+    type: 'consegna',
+    datetime: '2025-04-17T15:00:00',
+    endtime: '2025-04-17T16:00:00',
+    location: 'Cantiere Via Torino 89, Milano',
+    technician: 'Autista',
+    notes: 'Consegna 5 portefinestre e accessori.'
+  }
+] as AppointmentFormData[];
 
 const Appuntamenti = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [appointments, setAppointments] = useState<AppointmentFormData[]>([]);
   const [selectedAppointment, setSelectedAppointment] = useState<AppointmentFormData | null>(null);
-  const [isVenditore, setIsVenditore] = useState(false);
-  const { toast } = useToast();
-  const { user, currentUserProfile } = useUser();
-  const [selectedType, setSelectedType] = useState('all');
-  const [isLoading, setIsLoading] = useState(false);
-  const [venditori, setVenditori] = useState<Array<{id: string, nome: string, cognome: string}>>([]);
-  const [selectedVenditoreId, setSelectedVenditoreId] = useState<string | undefined>(undefined);
-
+  const [appointments, setAppointments] = useState<AppointmentFormData[]>([]);
+  const [typeFilter, setTypeFilter] = useState('all');
+  
+  // Load appointments from localStorage on component mount
   useEffect(() => {
-    if (currentUserProfile?.ruolo === 'venditore') {
-      setIsVenditore(true);
+    const savedAppointments = localStorage.getItem('appointments');
+    if (savedAppointments) {
+      setAppointments(JSON.parse(savedAppointments));
     } else {
-      setIsVenditore(false);
+      setAppointments(initialAppointments);
+      localStorage.setItem('appointments', JSON.stringify(initialAppointments));
     }
-  }, [currentUserProfile]);
-
-  // Fetch venditori if user is not a venditore
+  }, []);
+  
+  // Save appointments to localStorage when they change
   useEffect(() => {
-    const fetchVenditori = async () => {
-      if (!isVenditore) {
-        try {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('id, nome, cognome')
-            .eq('ruolo', 'venditore');
-
-          if (error) {
-            console.error("Error fetching venditori:", error);
-            return;
-          }
-
-          if (data) {
-            setVenditori(data);
-          }
-        } catch (error) {
-          console.error("Error:", error);
-        }
-      }
-    };
-
-    fetchVenditori();
-  }, [isVenditore]);
-
-  useEffect(() => {
-    const fetchAppointments = async () => {
-      if (!date) return;
-
-      try {
-        setIsLoading(true);
-        const formattedDate = format(date, 'yyyy-MM-dd');
-        
-        // Create query based on the correct table name "appuntamenti" (not "appointments")
-        let query = supabase
-          .from('appuntamenti')
-          .select('*')
-          .gte('datetime', `${formattedDate}T00:00:00+00:00`)
-          .lt('datetime', `${formattedDate}T23:59:59+00:00`);
-
-        if (selectedType !== 'all') {
-          query = query.eq('type', selectedType);
-        }
-
-        if (isVenditore && user?.id) {
-          query = query.eq('venditore_id', user.id);
-        } else if (selectedVenditoreId) {
-          query = query.eq('venditore_id', selectedVenditoreId);
-        }
-
-        const { data, error } = await query;
-
-        if (error) {
-          toast({
-            title: "Errore nel caricamento degli appuntamenti",
-            description: "Si è verificato un errore nel caricamento degli appuntamenti dal database.",
-            variant: "destructive"
-          });
-          console.error("Error fetching appointments:", error);
-          setAppointments([]);
-        } else if (data) {
-          // Map the data to the correct format expected by AppointmentsList
-          const mappedData = data.map(item => ({
-            id: item.id,
-            title: item.title,
-            client: item.client,
-            type: item.type as 'sopralluogo' | 'installazione' | 'riunione' | 'consegna',
-            datetime: item.datetime,
-            endtime: item.endtime || '',
-            location: item.location,
-            technician: '', // This field is needed by AppointmentFormData but not in the DB
-            notes: item.notes || '',
-            venditoreId: item.venditore_id
-          }));
-          setAppointments(mappedData);
-        } else {
-          setAppointments([]);
-        }
-      } catch (error) {
-        console.error("Error:", error);
-        toast({
-          title: "Errore",
-          description: "Si è verificato un errore durante il caricamento degli appuntamenti.",
-          variant: "destructive"
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchAppointments();
-  }, [date, toast, isVenditore, user?.id, selectedType, selectedVenditoreId]);
-
-  const handleAppointmentSelect = (appointment: AppointmentFormData) => {
-    setSelectedAppointment(appointment);
-  };
-
+    if (appointments.length > 0) {
+      localStorage.setItem('appointments', JSON.stringify(appointments));
+    }
+  }, [appointments]);
+  
   const handleAddAppointment = (newAppointment: AppointmentFormData) => {
-    // Here we'd normally send the appointment to the server
-    // For now we'll just update the local state
-    setAppointments(prevAppointments => [...prevAppointments, newAppointment]);
+    setAppointments(prev => [...prev, newAppointment]);
+    setDate(new Date(newAppointment.datetime));
+    toast({
+      title: "Appuntamento creato",
+      description: `L'appuntamento "${newAppointment.title}" è stato aggiunto con successo.`
+    });
   };
-
+  
+  const handleCompleteAppointment = (id: string) => {
+    setAppointments(prev => prev.filter(app => app.id !== id));
+    setSelectedAppointment(null);
+    toast({
+      title: "Appuntamento completato",
+      description: "L'appuntamento è stato contrassegnato come completato."
+    });
+  };
+  
+  const getFilteredAppointments = () => {
+    if (!date) return [];
+    
+    const dateString = date.toISOString().split('T')[0];
+    
+    let filtered = appointments.filter(appointment => {
+      const appointmentDate = new Date(appointment.datetime).toISOString().split('T')[0];
+      return appointmentDate === dateString;
+    });
+    
+    if (typeFilter !== 'all') {
+      filtered = filtered.filter(appointment => appointment.type === typeFilter);
+    }
+    
+    return filtered.sort((a, b) => {
+      return new Date(a.datetime).getTime() - new Date(b.datetime).getTime();
+    });
+  };
+  
+  const todayAppointments = getFilteredAppointments();
+  
   return (
-    <div className="container mx-auto py-6">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="md:col-span-1">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant={"outline"}
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !date && "text-muted-foreground"
-                )}
-              >
-                <Calendar className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP") : <span>Pick a date</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <CalendarUI
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-
-          <div className="mt-4">
-            <Label htmlFor="type">Filtra per tipo:</Label>
-            <Select value={selectedType} onValueChange={setSelectedType}>
-              <SelectTrigger>
-                <SelectValue placeholder="Tutti" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tutti</SelectItem>
-                <SelectItem value="sopralluogo">Sopralluogo</SelectItem>
-                <SelectItem value="installazione">Installazione</SelectItem>
-                <SelectItem value="riunione">Riunione</SelectItem>
-                <SelectItem value="consegna">Consegna</SelectItem>
-              </SelectContent>
-            </Select>
+    <MainLayout>
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-2xl font-bold">Calendario Appuntamenti</h1>
+            <p className="text-gray-500">Gestisci sopralluoghi, installazioni e riunioni</p>
           </div>
-
-          {!isVenditore && (
-            <div className="mt-4">
-              <Label htmlFor="venditore">Filtra per venditore:</Label>
-              <Select 
-                value={selectedVenditoreId || "all"} 
-                onValueChange={(value) => setSelectedVenditoreId(value === "all" ? undefined : value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Tutti i venditori" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tutti i venditori</SelectItem>
-                  {venditori.map((venditore) => (
-                    <SelectItem key={venditore.id} value={venditore.id}>
-                      {venditore.nome} {venditore.cognome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+          
+          <AppointmentDialog onAddAppointment={handleAddAppointment} />
         </div>
         
-        <div className="md:col-span-2">
-          <AppointmentsList 
-            appointments={appointments}
-            selectedAppointment={selectedAppointment}
-            onSelectAppointment={handleAppointmentSelect}
-            readOnly={isVenditore}
-          />
-        </div>
-        
-        <div className="md:col-span-1">
-          <AppointmentDialog 
-            onAddAppointment={handleAddAppointment}
-          />
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="md:w-[380px]">
+            <AppointmentsCalendar
+              date={date}
+              onDateSelect={setDate}
+              typeFilter={typeFilter}
+              onTypeFilterChange={setTypeFilter}
+            />
+          </div>
+          
+          <div className="flex-1">
+            <AppointmentsList
+              appointments={todayAppointments}
+              selectedAppointment={selectedAppointment}
+              onSelectAppointment={setSelectedAppointment}
+              onCompleteAppointment={handleCompleteAppointment}
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </MainLayout>
   );
 };
 

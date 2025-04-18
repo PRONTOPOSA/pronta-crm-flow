@@ -1,37 +1,24 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import type { VenditoreFormData, VenditoreWithProfile } from "@/types/venditori";
 
 export const fetchVenditori = async (): Promise<VenditoreWithProfile[]> => {
-  console.log('Fetching vendors...');
   const { data, error } = await supabase
     .from('profiles')
-    .select(`
-      id,
-      nome,
-      cognome,
-      email,
-      ruolo,
-      data_creazione,
-      venditori (
-        id
-      )
-    `)
+    .select('*')
     .eq('ruolo', 'venditore')
     .order('data_creazione', { ascending: false });
 
-  if (error) {
-    console.error('Error fetching vendors:', error);
-    throw error;
-  }
-
-  // Only include users that have an entry in the venditori table
-  const venditori = data?.filter(profile => profile.venditori?.length > 0) || [];
-  console.log('Filtered vendors:', venditori);
+  if (error) throw error;
+  console.log('Venditori fetched:', data);
   
-  return venditori.map(profile => ({
-    ...profile,
-    ruolo: profile.ruolo as 'admin' | 'operatore' | 'venditore'
-  }));
+  // Cast the data to ensure the ruolo field is correctly typed
+  const typedData = data?.map(item => ({
+    ...item,
+    ruolo: item.ruolo as 'admin' | 'operatore' | 'venditore'
+  })) || [];
+  
+  return typedData;
 };
 
 export const checkExistingUser = async (email: string) => {
@@ -52,14 +39,10 @@ export const updateUserRole = async (userId: string) => {
     .eq('id', userId);
 
   if (updateError) throw updateError;
-  console.log('Updated user role to venditore:', userId);
 };
 
 export const ensureVenditoreRecord = async (userId: string) => {
-  // First, ensure the user has the venditore role
-  await updateUserRole(userId);
-
-  // Then create the vendor record
+  // Check if the vendor record already exists
   const { data: venditoreExists, error: checkError } = await supabase
     .from('venditori')
     .select('id')
@@ -68,6 +51,7 @@ export const ensureVenditoreRecord = async (userId: string) => {
 
   if (checkError) throw checkError;
 
+  // If it doesn't exist, create a new vendor record
   if (!venditoreExists) {
     const { error: insertError } = await supabase
       .from('venditori')
@@ -81,17 +65,21 @@ export const ensureVenditoreRecord = async (userId: string) => {
 };
 
 export const deleteVenditoreProfile = async (userId: string) => {
-  try {
-    const { error } = await supabase.functions.invoke('delete-user', {
-      body: { userId }
-    });
+  // Prima eliminiamo il record dalla tabella venditori
+  const { error: deleteVenditoreError } = await supabase
+    .from('venditori')
+    .delete()
+    .eq('user_id', userId);
 
-    if (error) throw error;
+  if (deleteVenditoreError) throw deleteVenditoreError;
 
-    console.log('Successfully deleted venditore profile and user:', userId);
-    return true;
-  } catch (error) {
-    console.error('Error deleting venditore:', error);
-    throw error;
-  }
+  // Poi aggiorniamo il ruolo dell'utente a operatore invece di eliminarlo completamente
+  const { error: updateError } = await supabase
+    .from('profiles')
+    .update({ ruolo: 'operatore' })
+    .eq('id', userId);
+
+  if (updateError) throw updateError;
+
+  console.log('Venditore converted to operatore:', userId);
 };

@@ -167,7 +167,7 @@ export const AppointmentForm: React.FC<AppointmentFormProps> = ({
       </div>
       
       <div className="grid gap-2">
-        <Label htmlFor="venditore">Venditore *</Label>
+        <Label htmlFor="venditore">Venditore</Label>
         <VenditoreSelect 
           value={appointment.venditoreId} 
           onChange={onVenditoreChange}

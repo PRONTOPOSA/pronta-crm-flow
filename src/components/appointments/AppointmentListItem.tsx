@@ -10,16 +10,14 @@ interface AppointmentListItemProps {
   appointment: AppointmentFormData;
   isSelected: boolean;
   onSelect: (appointment: AppointmentFormData) => void;
-  onComplete?: (id: string) => void;
-  readOnly?: boolean;
+  onComplete: (id: string) => void;
 }
 
 export const AppointmentListItem = ({
   appointment,
   isSelected,
   onSelect,
-  onComplete,
-  readOnly = false
+  onComplete
 }: AppointmentListItemProps) => {
   const getVenditoreName = (venditoreId: string | undefined) => {
     if (!venditoreId) return null;
@@ -87,24 +85,22 @@ export const AppointmentListItem = ({
           <p className="font-medium mb-1">Note:</p>
           <p className="text-gray-600">{appointment.notes}</p>
           
-          {!readOnly && onComplete && (
-            <div className="mt-4 flex gap-2">
-              <Button size="sm" variant="outline" className="text-xs">
-                Modifica
-              </Button>
-              <Button 
-                size="sm" 
-                className="text-xs bg-green-600 hover:bg-green-700"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onComplete(appointment.id);
-                }}
-              >
-                <CheckCircle2 className="h-3 w-3 mr-1" />
-                Completa
-              </Button>
-            </div>
-          )}
+          <div className="mt-4 flex gap-2">
+            <Button size="sm" variant="outline" className="text-xs">
+              Modifica
+            </Button>
+            <Button 
+              size="sm" 
+              className="text-xs bg-green-600 hover:bg-green-700"
+              onClick={(e) => {
+                e.stopPropagation();
+                onComplete(appointment.id);
+              }}
+            >
+              <CheckCircle2 className="h-3 w-3 mr-1" />
+              Completa
+            </Button>
+          </div>
         </div>
       )}
     </div>

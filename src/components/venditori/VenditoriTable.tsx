@@ -3,16 +3,10 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Trash2, UserX } from 'lucide-react';
-
-type Venditore = {
-  id: string;
-  nome: string;
-  cognome: string;
-  email: string;
-};
+import type { User } from '@/types/users';
 
 type VenditoriTableProps = {
-  venditori: Venditore[];
+  venditori: User[];
   isLoading: boolean;
   isAdmin: boolean;
   onDelete: (id: string) => void;
@@ -26,6 +20,9 @@ export const VenditoriTable = ({
   onDelete,
   searchQuery
 }: VenditoriTableProps) => {
+  // Log all vendors to debug what's coming in
+  console.log('Rendering VenditoriTable with data:', venditori);
+
   const filteredVenditori = venditori.filter(venditore => 
     venditore.nome.toLowerCase().includes(searchQuery.toLowerCase()) ||
     venditore.cognome.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -66,14 +63,16 @@ export const VenditoriTable = ({
                 </span>
               </TableCell>
               <TableCell className="text-right">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={() => onDelete(venditore.id)}
-                  title="Rimuovi venditore"
-                >
-                  <UserX className="h-4 w-4 text-red-500" />
-                </Button>
+                {isAdmin && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => onDelete(venditore.id)}
+                    title="Rimuovi venditore"
+                  >
+                    <UserX className="h-4 w-4 text-red-500" />
+                  </Button>
+                )}
               </TableCell>
             </TableRow>
           ))

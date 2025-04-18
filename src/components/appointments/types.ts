@@ -3,7 +3,7 @@ export interface AppointmentFormData {
   id: string;
   title: string;
   client: string;
-  type: AppointmentType;
+  type: 'sopralluogo' | 'installazione' | 'riunione' | 'consegna';
   datetime: string;
   endtime: string;
   location: string;
@@ -11,5 +11,3 @@ export interface AppointmentFormData {
   notes: string;
   venditoreId?: string;
 }
-
-export type AppointmentType = 'sopralluogo' | 'installazione' | 'riunione' | 'consegna';

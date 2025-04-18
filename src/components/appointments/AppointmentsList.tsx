@@ -1,23 +1,21 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AppointmentFormData } from './types';
+import { AppointmentFormData } from './AppointmentDialog';
 import { AppointmentListItem } from './AppointmentListItem';
 
 interface AppointmentsListProps {
   appointments: AppointmentFormData[];
   selectedAppointment: AppointmentFormData | null;
   onSelectAppointment: (appointment: AppointmentFormData) => void;
-  onCompleteAppointment?: (id: string) => void;
-  readOnly?: boolean;
+  onCompleteAppointment: (id: string) => void;
 }
 
 export const AppointmentsList = ({
   appointments,
   selectedAppointment,
   onSelectAppointment,
-  onCompleteAppointment,
-  readOnly = false
+  onCompleteAppointment
 }: AppointmentsListProps) => {
   return (
     <Card className="h-full">
@@ -37,7 +35,6 @@ export const AppointmentsList = ({
               isSelected={selectedAppointment?.id === appointment.id}
               onSelect={onSelectAppointment}
               onComplete={onCompleteAppointment}
-              readOnly={readOnly}
             />
           ))}
         </div>
