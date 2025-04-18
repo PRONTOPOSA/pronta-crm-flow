@@ -63,11 +63,7 @@ const UserTable = () => {
     return <UserTableLoading />;
   }
 
-  // Filter out users with 'venditore' role - this is the key change
-  const filteredUsers = users.filter(user => user.ruolo !== 'venditore');
-  
   console.log("UserTable rendering. Admin status:", isAdmin);
-  console.log("Filtered users (excluding vendors):", filteredUsers.length);
 
   return (
     <div className="space-y-4">
@@ -101,7 +97,7 @@ const UserTable = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredUsers.map((user) => (
+          {users.map((user) => (
             <TableRow key={user.id}>
               <TableCell>{user.nome}</TableCell>
               <TableCell>{user.cognome}</TableCell>
